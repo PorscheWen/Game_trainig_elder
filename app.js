@@ -238,7 +238,7 @@ function onGameWin() {
     DOM.winTime.textContent = formatTime(state.seconds);
     DOM.winFlips.textContent = `${state.flips} 次`;
     DOM.newRecordBadge.style.display = isNew ? 'flex' : 'none';
-    DOM.btnShareLine.style.display = state.liffReady ? 'block' : 'none';
+    DOM.btnShareLine.style.display = 'block';
     DOM.winOverlay.classList.add('open');
   }, 600);
 }
@@ -439,32 +439,24 @@ function buildShareFlex(difficulty, timeStr, flips, gameUrl) {
   };
 }
 
-async function shareResult() {
-  const config = window.GAME_CONFIG || {};
+function shareResult() {
+  const config  = window.GAME_CONFIG || {};
   const gameUrl = config.liffId
     ? `https://liff.line.me/${config.liffId}`
     : (config.gameUrl || location.href);
 
-  const flex = buildShareFlex(
-    state.difficulty,
-    DOM.winTime.textContent,
-    state.flips,
-    gameUrl,
-  );
+  const diffName  = { easy: '初級', medium: '中級', hard: '高級' };
+  const diffEmoji = { easy: '🌱', medium: '🌿', hard: '🌳' };
+  const d = state.difficulty;
 
-  try {
-    if (!liff.isLoggedIn()) {
-      liff.login();
-      return;
-    }
-    const result = await liff.shareTargetPicker([flex], { isMultiple: true });
-    if (result?.status === 'success') {
-      console.log('[LIFF] 分享成功');
-    }
-  } catch (e) {
-    console.warn('[LIFF] 分享失敗:', e.message);
-    alert('分享失敗：' + e.message);
-  }
+  const text =
+    `🧠 記憶訓練挑戰完成！\n` +
+    `${diffEmoji[d]} 難度：${diffName[d]}\n` +
+    `⏱️ 時間：${DOM.winTime.textContent}\n` +
+    `🔄 翻牌：${state.flips} 次\n\n` +
+    `你也來挑戰！👊\n${gameUrl}`;
+
+  window.open(`https://line.me/R/msg/text/${encodeURIComponent(text)}`, '_blank');
 }
 
 // ===== LIFF 初始化 =====
