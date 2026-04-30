@@ -1081,3 +1081,52 @@ button {
   clip: rect(0,0,0,0);
   white-space: nowrap;
 }
+
+/* ===== 最佳成績彈窗 ===== */
+.trophy-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.trophy-overlay.open { display: flex; }
+
+.trophy-panel {
+  background: var(--surface);
+  border-radius: 24px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.trophy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.trophy-header h2 { font-size: var(--font-size-xl); font-weight: 700; }
+
+.trophy-scores { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+
+.trophy-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f7f8ff;
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.trophy-diff { display: flex; align-items: center; gap: 6px; flex: 1; }
+.trophy-diff-icon { font-size: 1.4rem; }
+.trophy-diff-name { font-size: var(--font-size-base); font-weight: 600; color: var(--text-primary); }
+.trophy-stat { display: flex; align-items: center; gap: 4px; font-size: var(--font-size-sm); color: var(--text-secondary); }
+.trophy-stat strong { color: var(--text-primary); font-size: var(--font-size-base); }
+.trophy-no-record { font-size: var(--font-size-sm); color: var(--text-light); flex: 2; }
+
+.trophy-buttons { display: flex; flex-direction: column; gap: 10px; }

@@ -59,6 +59,12 @@ const DOM = {
   helpOverlay: $('helpOverlay'),
   btnCloseHelp: $('btnCloseHelp'),
   btnHelpStart: $('btnHelpStart'),
+  btnTrophy: $('btnTrophy'),
+  trophyOverlay: $('trophyOverlay'),
+  btnCloseTrophy: $('btnCloseTrophy'),
+  trophyScores: $('trophyScores'),
+  btnShareBest: $('btnShareBest'),
+  btnClearTrophyScores: $('btnClearTrophyScores'),
 };
 
 // ===== 工具函數 =====
@@ -297,6 +303,65 @@ function setFontSize(size) {
   });
 }
 
+// ===== 最佳成績彈窗 =====
+function renderTrophyScores() {
+  const scores = loadBestScores();
+  const diffEmoji = { easy: '🌱', medium: '🌿', hard: '🌳' };
+  const rows = Object.entries(DIFFICULTY_NAMES).map(([key, name]) => {
+    const s = scores[key];
+    return `
+      <div class="trophy-row">
+        <div class="trophy-diff">
+          <span class="trophy-diff-icon">${diffEmoji[key]}</span>
+          <span class="trophy-diff-name">${name}</span>
+        </div>
+        ${s ? `
+          <div class="trophy-stat"><span>⏱️</span><strong>${formatTime(s.seconds)}</strong></div>
+          <div class="trophy-stat"><span>🔄</span><strong>${s.flips} 次</strong></div>
+        ` : `<div class="trophy-no-record">尚無紀錄</div>`}
+      </div>`;
+  }).join('');
+  DOM.trophyScores.innerHTML = rows;
+}
+
+function openTrophy() {
+  renderTrophyScores();
+  DOM.trophyOverlay.classList.add('open');
+  DOM.btnCloseTrophy.focus();
+}
+
+function closeTrophy() {
+  DOM.trophyOverlay.classList.remove('open');
+  DOM.btnTrophy.focus();
+}
+
+function shareBestScores() {
+  const scores = loadBestScores();
+  const config  = window.GAME_CONFIG || {};
+  const gameUrl = config.liffId
+    ? `https://liff.line.me/${config.liffId}`
+    : (config.gameUrl || location.href);
+
+  const diffName  = { easy: '初級', medium: '中級', hard: '高級' };
+  const diffEmoji = { easy: '🌱', medium: '🌿', hard: '🌳' };
+
+  const lines = Object.entries(diffName).map(([key, name]) => {
+    const s = scores[key];
+    return s
+      ? `${diffEmoji[key]} ${name}｜${formatTime(s.seconds)}｜${s.flips} 次`
+      : `${diffEmoji[key]} ${name}｜尚無紀錄`;
+  });
+
+  const text =
+    `🏆 記憶訓練最佳成績\n` +
+    `─────────────\n` +
+    lines.join('\n') +
+    `\n─────────────\n` +
+    `挑戰看看！👊\n${gameUrl}`;
+
+  window.open(`https://line.me/R/msg/text/${encodeURIComponent(text)}`, '_blank');
+}
+
 // ===== 事件綁定 =====
 // ===== 說明面板 =====
 function openHelp() {
@@ -308,6 +373,22 @@ function closeHelp() {
   DOM.helpOverlay.classList.remove('open');
   DOM.btnHelp.focus();
 }
+
+DOM.btnTrophy.addEventListener('click', openTrophy);
+DOM.btnCloseTrophy.addEventListener('click', closeTrophy);
+DOM.trophyOverlay.addEventListener('click', e => {
+  if (e.target === DOM.trophyOverlay) closeTrophy();
+});
+DOM.trophyOverlay.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeTrophy();
+});
+DOM.btnShareBest.addEventListener('click', shareBestScores);
+DOM.btnClearTrophyScores.addEventListener('click', () => {
+  if (confirm('確定要清除所有最佳成績嗎？')) {
+    localStorage.removeItem('memory_best');
+    renderTrophyScores();
+  }
+});
 
 DOM.btnHelp.addEventListener('click', openHelp);
 DOM.btnCloseHelp.addEventListener('click', closeHelp);

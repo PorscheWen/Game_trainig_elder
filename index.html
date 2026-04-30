@@ -22,6 +22,7 @@
   <header class="app-header">
     <h1 class="app-title">🧠 記憶訓練</h1>
     <div class="header-actions">
+      <button class="btn-icon" id="btnTrophy" aria-label="最佳成績">🏆</button>
       <button class="btn-icon" id="btnHelp" aria-label="遊戲說明">❓</button>
       <button class="btn-icon" id="btnSettings" aria-label="設定">⚙️</button>
     </div>
@@ -226,6 +227,23 @@
       </div>
 
       <button class="btn btn-start-game" id="btnHelpStart">我知道了，開始遊戲！</button>
+    </div>
+  </div>
+
+  <!-- 最佳成績彈窗 -->
+  <div class="trophy-overlay" id="trophyOverlay" role="dialog" aria-modal="true" aria-label="最佳成績">
+    <div class="trophy-panel">
+      <div class="trophy-header">
+        <h2>🏆 最佳成績</h2>
+        <button class="btn-icon" id="btnCloseTrophy" aria-label="關閉">✕</button>
+      </div>
+      <div class="trophy-scores" id="trophyScores">
+        <!-- 由 JS 填入 -->
+      </div>
+      <div class="trophy-buttons">
+        <button class="btn btn-share-line" id="btnShareBest">📤 分享成績到 LINE</button>
+        <button class="btn btn-clear-scores" id="btnClearTrophyScores">🗑️ 清除成績</button>
+      </div>
     </div>
   </div>
 
