@@ -389,7 +389,7 @@ function buildShareFlex(difficulty, timeStr, flips, gameUrl) {
         backgroundColor: '#5B6EE8', paddingAll: '20px',
         contents: [
           { type: 'text', text: '🧠 記憶訓練挑戰', color: '#ffffff', size: 'xl', weight: 'bold' },
-          { type: 'text', text: '我完成了！你也來試試？', color: '#ffffffcc', size: 'sm' },
+          { type: 'text', text: '我完成了！你也來試試？', color: '#ddddff', size: 'sm' },
         ],
       },
       body: {
@@ -453,7 +453,14 @@ async function shareResult() {
   );
 
   try {
-    await liff.shareTargetPicker([flex], { isMultiple: true });
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+    const result = await liff.shareTargetPicker([flex], { isMultiple: true });
+    if (result?.status === 'success') {
+      console.log('[LIFF] 分享成功');
+    }
   } catch (e) {
     console.warn('[LIFF] 分享失敗:', e.message);
   }
@@ -466,8 +473,9 @@ async function initLiff() {
   if (!liffId) return;
   try {
     await liff.init({ liffId });
-    state.liffReady = true;
-    console.log('[LIFF] 初始化成功，isInClient:', liff.isInClient());
+    const canShare = liff.isApiAvailable('shareTargetPicker');
+    state.liffReady = canShare;
+    console.log('[LIFF] 初始化成功，shareTargetPicker:', canShare);
   } catch (e) {
     console.warn('[LIFF] 初始化失敗:', e.message);
   }
