@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="連阿嬤都贏你！台灣水果消消樂 - 三代同堂點擊消除">
+  <meta name="theme-color" content="#5B6EE8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>🍎 水果消消樂</title>
+  <style>
+    :root {
+      --primary: #5B6EE8;
+      --primary-dark: #4558d4;
+      --bg: #F4F6FF;
+      --header-height: 64px;
+      --radius: 14px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: var(--header-height);
+      background: var(--primary);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px;
+      box-shadow: 0 2px 12px rgba(91,110,232,0.3);
+    }
+    .btn-back {
+      background: rgba(255,255,255,0.2); border: none; border-radius: 10px;
+      color: #fff; font-size: 1.1rem; padding: 8px 14px; cursor: pointer;
+    }
+    .app-title {
+      color: #fff; font-size: 1.15rem; font-weight: 700; flex: 1; text-align: center;
+    }
+    .header-score {
+      background: rgba(255,255,255,0.2); border-radius: 10px;
+      color: #fff; font-size: 1rem; font-weight: 700; padding: 6px 14px;
+      min-width: 64px; text-align: center;
+    }
+
+    /* ── Grid wrapper ── */
+    .grid-wrap {
+      position: fixed;
+      top: var(--header-height); left: 0; right: 0; bottom: 80px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      padding: 8px;
+      background: rgba(91,110,232,0.08);
+      border-radius: var(--radius);
+      width: min(calc(100vw - 16px), 420px);
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: clamp(1.4rem, 5.5vw, 2rem);
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(91,110,232,0.12);
+      transition: transform 0.12s, background 0.12s, opacity 0.25s;
+      position: relative;
+    }
+    .cell:active { transform: scale(0.88); }
+    .cell.selected {
+      background: #d0d8ff;
+      box-shadow: 0 0 0 3px var(--primary);
+      transform: scale(1.08);
+    }
+    .cell.matched {
+      background: #d5f0e1;
+      animation: pop 0.35s ease;
+    }
+    .cell.invalid {
+      animation: shake 0.3s ease;
+    }
+    .cell.falling {
+      animation: fall 0.25s ease;
+    }
+    .cell.new-fruit {
+      animation: drop-in 0.3s ease;
+    }
+
+    @keyframes pop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.25); }
+      100% { transform: scale(1); }
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%  { transform: translateX(-5px); }
+      75%  { transform: translateX(5px); }
+    }
+    @keyframes drop-in {
+      from { transform: translateY(-30px); opacity: 0; }
+      to   { transform: translateY(0);     opacity: 1; }
+    }
+
+    /* ── Bottom bar ── */
+    .control-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 80px;
+      background: #fff;
+      box-shadow: 0 -2px 12px rgba(91,110,232,0.1);
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+      padding: 0 20px;
+    }
+    .btn-restart {
+      flex: 1; max-width: 300px;
+      background: var(--primary); color: #fff;
+      border: none; border-radius: 12px;
+      font-size: 1.05rem; font-weight: 700; padding: 14px;
+      cursor: pointer; box-shadow: 0 4px 14px rgba(91,110,232,0.3);
+    }
+    .btn-restart:active { transform: scale(0.96); }
+
+    /* ── Combo toast ── */
+    .combo-toast {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: var(--primary); color: #fff;
+      font-size: 1.6rem; font-weight: 900;
+      padding: 14px 28px; border-radius: 20px;
+      pointer-events: none; opacity: 0;
+      transition: opacity 0.25s;
+      z-index: 200;
+      white-space: nowrap;
+    }
+    .combo-toast.show { opacity: 1; }
+
+    /* ── Help overlay ── */
+    .help-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 300;
+    }
+    .help-panel {
+      background: #fff; border-radius: 20px;
+      padding: 28px 24px; width: min(360px, calc(100vw - 32px));
+      text-align: center;
+    }
+    .help-panel h2 { font-size: 1.4rem; margin-bottom: 16px; color: var(--primary); }
+    .help-steps { text-align: left; margin-bottom: 20px; }
+    .help-step { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
+    .step-num {
+      background: var(--primary); color: #fff;
+      border-radius: 50%; width: 28px; height: 28px; min-width: 28px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.9rem;
+    }
+    .step-text { font-size: 0.95rem; line-height: 1.5; padding-top: 4px; }
+    .btn-got-it {
+      background: var(--primary); color: #fff;
+      border: none; border-radius: 12px;
+      font-size: 1.05rem; font-weight: 700; padding: 14px 32px;
+      cursor: pointer; width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <button class="btn-back" onclick="location.href='index.html'">← 返回</button>
+    <h1 class="app-title">🍎 水果消消樂</h1>
+    <div class="header-score" id="scoreDisplay">0</div>
+  </header>
+
+  <div class="grid-wrap">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="control-bar">
+    <button class="btn-restart" id="btnRestart">🔁 重新開始</button>
+  </div>
+
+  <div class="combo-toast" id="comboToast"></div>
+
+  <!-- 說明彈窗（首次進入顯示） -->
+  <div class="help-overlay" id="helpOverlay">
+    <div class="help-panel">
+      <h2>🍎 怎麼玩？</h2>
+      <div class="help-steps">
+        <div class="help-step">
+          <span class="step-num">1</span>
+          <p class="step-text">點擊一顆水果選取（變藍色）</p>
+        </div>
+        <div class="help-step">
+          <span class="step-num">2</span>
+          <p class="step-text">點擊旁邊的水果，兩顆交換位置</p>
+        </div>
+        <div class="help-step">
+          <span class="step-num">3</span>
+          <p class="step-text">橫排或直排湊到 3 顆相同 → 消除得分！</p>
+        </div>
+        <div class="help-step">
+          <span class="step-num">4</span>
+          <p class="step-text">連鎖消除越多，得分越高！</p>
+        </div>
+      </div>
+      <button class="btn-got-it" id="btnGotIt">我知道了，開始玩！</button>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    const FRUITS = ['🍌', '🍍', '🥭', '🍊', '🍇', '🍓'];
+    const ROWS = 7, COLS = 7;
+
+    let grid = [];
+    let selected = null;
+    let score = 0;
+    let busy = false;
+
+    const gridEl      = document.getElementById('grid');
+    const scoreEl     = document.getElementById('scoreDisplay');
+    const comboToast  = document.getElementById('comboToast');
+
+    /* ── Init ── */
+    function init() {
+      score = 0;
+      selected = null;
+      busy = false;
+      updateScore();
+      do { fillRandom(); } while (findMatches().length > 0);
+      render();
+    }
+
+    function fillRandom() {
+      grid = Array.from({length: ROWS}, () =>
+        Array.from({length: COLS}, () => randFruit())
+      );
+    }
+
+    function randFruit() {
+      return Math.floor(Math.random() * FRUITS.length);
+    }
+
+    /* ── Render ── */
+    function render(matchSet) {
+      gridEl.innerHTML = '';
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          const v = grid[r][c];
+          cell.textContent = v >= 0 ? FRUITS[v] : '';
+          if (selected && selected.r === r && selected.c === c) cell.classList.add('selected');
+          if (matchSet && matchSet.has(r * COLS + c)) cell.classList.add('matched');
+          cell.addEventListener('click', () => onCellClick(r, c));
+          gridEl.appendChild(cell);
+        }
+      }
+    }
+
+    function updateScore() {
+      scoreEl.textContent = score;
+    }
+
+    /* ── Click handler ── */
+    function onCellClick(r, c) {
+      if (busy) return;
+      if (selected === null) {
+        selected = {r, c};
+        render();
+        return;
+      }
+      const {r: sr, c: sc} = selected;
+      if (sr === r && sc === c) { selected = null; render(); return; }
+      if (Math.abs(sr - r) + Math.abs(sc - c) === 1) {
+        selected = null;
+        trySwap(sr, sc, r, c);
+      } else {
+        selected = {r, c};
+        render();
+      }
+    }
+
+    /* ── Swap ── */
+    async function trySwap(r1, c1, r2, c2) {
+      busy = true;
+      swap(r1, c1, r2, c2);
+      render();
+      const matches = findMatches();
+      if (matches.length === 0) {
+        await delay(260);
+        swap(r1, c1, r2, c2);
+        render();
+        markInvalid(r1, c1);
+        markInvalid(r2, c2);
+      } else {
+        await cascade();
+      }
+      busy = false;
+    }
+
+    function swap(r1, c1, r2, c2) {
+      [grid[r1][c1], grid[r2][c2]] = [grid[r2][c2], grid[r1][c1]];
+    }
+
+    function markInvalid(r, c) {
+      const idx = r * COLS + c;
+      const cells = gridEl.children;
+      if (cells[idx]) cells[idx].classList.add('invalid');
+    }
+
+    /* ── Cascade ── */
+    async function cascade() {
+      let combo = 0;
+      let matches;
+      while ((matches = findMatches()).length > 0) {
+        combo++;
+        const matchSet = new Set(matches.map(({r, c}) => r * COLS + c));
+        score += matches.length * 10 * combo;
+        updateScore();
+        render(matchSet);
+        await delay(380);
+        matches.forEach(({r, c}) => { grid[r][c] = -1; });
+        dropFruits();
+        fillNew();
+        render();
+        await delay(260);
+        if (combo >= 2) showCombo(combo, matches.length);
+      }
+    }
+
+    /* ── Match detection ── */
+    function findMatches() {
+      const matched = new Set();
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS - 2; c++) {
+          const v = grid[r][c];
+          if (v < 0) continue;
+          if (v === grid[r][c+1] && v === grid[r][c+2]) {
+            let e = c + 2;
+            while (e + 1 < COLS && grid[r][e+1] === v) e++;
+            for (let i = c; i <= e; i++) matched.add(r * COLS + i);
+            c = e;
+          }
+        }
+      }
+      for (let c = 0; c < COLS; c++) {
+        for (let r = 0; r < ROWS - 2; r++) {
+          const v = grid[r][c];
+          if (v < 0) continue;
+          if (v === grid[r+1][c] && v === grid[r+2][c]) {
+            let e = r + 2;
+            while (e + 1 < ROWS && grid[e+1][c] === v) e++;
+            for (let i = r; i <= e; i++) matched.add(i * COLS + c);
+            r = e;
+          }
+        }
+      }
+      return [...matched].map(idx => ({r: Math.floor(idx / COLS), c: idx % COLS}));
+    }
+
+    /* ── Drop & fill ── */
+    function dropFruits() {
+      for (let c = 0; c < COLS; c++) {
+        let write = ROWS - 1;
+        for (let r = ROWS - 1; r >= 0; r--) {
+          if (grid[r][c] >= 0) { grid[write][c] = grid[r][c]; if (write !== r) grid[r][c] = -1; write--; }
+        }
+        for (let r = write; r >= 0; r--) grid[r][c] = -1;
+      }
+    }
+
+    function fillNew() {
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          if (grid[r][c] < 0) grid[r][c] = randFruit();
+    }
+
+    /* ── Combo toast ── */
+    let comboTimer = null;
+    function showCombo(combo, count) {
+      const msgs = ['', '', '👏 連鎖 ×2！', '🔥 三連鎖！', '💥 四連鎖！！', '🌟 超級連鎖！！！'];
+      const msg = msgs[Math.min(combo, msgs.length - 1)] || `🌟 ${combo} 連鎖！！！`;
+      comboToast.textContent = `${msg}  +${count * 10 * combo}`;
+      comboToast.classList.add('show');
+      clearTimeout(comboTimer);
+      comboTimer = setTimeout(() => comboToast.classList.remove('show'), 900);
+    }
+
+    /* ── Helpers ── */
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    /* ── Events ── */
+    document.getElementById('btnRestart').addEventListener('click', init);
+    document.getElementById('btnGotIt').addEventListener('click', () => {
+      document.getElementById('helpOverlay').style.display = 'none';
+    });
+
+    /* ── Start ── */
+    init();
+  </script>
+</body>
+</html>

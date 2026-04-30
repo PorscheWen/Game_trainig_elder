@@ -323,7 +323,8 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 20px;
+  gap: 12px;
+  padding: 0 16px;
   box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
   position: sticky;
   bottom: 0;
@@ -356,13 +357,30 @@ button {
   background: linear-gradient(135deg, var(--primary), #7B8EF0);
   color: white;
   box-shadow: 0 4px 16px rgba(91,110,232,0.4);
-  min-width: 200px;
+  flex: 1;
   font-size: var(--font-size-lg);
-  padding: 16px 40px;
+  padding: 16px 20px;
 }
 
 .btn-restart:hover {
   box-shadow: 0 6px 24px rgba(91,110,232,0.5);
+  transform: translateY(-1px);
+}
+
+.btn-fruit {
+  background: linear-gradient(135deg, #27AE60, #52C97A);
+  color: white;
+  box-shadow: 0 4px 16px rgba(39,174,96,0.35);
+  font-size: var(--font-size-base);
+  padding: 14px 22px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-fruit:hover {
+  box-shadow: 0 6px 24px rgba(39,174,96,0.45);
   transform: translateY(-1px);
 }
 
