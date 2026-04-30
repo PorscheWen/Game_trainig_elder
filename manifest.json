@@ -1,7 +1,7 @@
 {
-  "name": "記憶訓練遊戲",
-  "short_name": "記憶遊戲",
-  "description": "老人記憶訓練翻牌配對遊戲，訓練記憶力，保持大腦活躍",
+  "name": "連阿嬤都贏你",
+  "short_name": "阿嬤贏你",
+  "description": "連阿嬤都贏你！三代同堂翻牌配對遊戲，動動腦，保持大腦活躍",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#F4F6FF",
@@ -34,7 +34,7 @@
     {
       "name": "新遊戲（初級）",
       "short_name": "初級",
-      "description": "開始初級記憶訓練",
+      "description": "開始挑戰，連阿嬤都能贏你！",
       "url": "./index.html?start=easy"
     }
   ]

@@ -1,6 +1,6 @@
 services:
   - type: cron
-    name: game-daily-push
+    name: grannys-got-game-push
     runtime: node
     schedule: "0 1 * * *"   # 台灣時間 09:00 (UTC+8)
     buildCommand: npm install --omit=dev
@@ -13,4 +13,4 @@ services:
       - key: LIFF_ID
         sync: false
       - key: GAME_URL
-        value: https://porschewenn.github.io/Game_trainig_elder/
+        value: https://porschewenn.github.io/GrannysGotGame/

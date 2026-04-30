@@ -5,7 +5,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') }
 const ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 const USER_ID      = process.env.LINE_USER_ID;
 const LIFF_ID      = process.env.LIFF_ID;
-const GAME_URL     = process.env.GAME_URL || 'https://porschewenn.github.io/Game_trainig_elder/';
+const GAME_URL     = process.env.GAME_URL || 'https://porschewenn.github.io/GrannysGotGame/';
 
 if (!ACCESS_TOKEN || !USER_ID) {
   console.error('[push] 缺少 LINE_CHANNEL_ACCESS_TOKEN 或 LINE_USER_ID');
@@ -17,7 +17,7 @@ const gameUrl = LIFF_ID ? `https://liff.line.me/${LIFF_ID}` : GAME_URL;
 const messages = [
   {
     type: 'flex',
-    altText: '🧠 今天來練習記憶力！',
+    altText: '👵 連阿嬤都贏你！今天來挑戰！',
     contents: {
       type: 'bubble',
       size: 'mega',
@@ -25,7 +25,7 @@ const messages = [
         type: 'box', layout: 'vertical',
         backgroundColor: '#5B6EE8', paddingAll: '20px',
         contents: [
-          { type: 'text', text: '🧠 每日記憶訓練', color: '#ffffff', size: 'xl', weight: 'bold' },
+          { type: 'text', text: '👵 連阿嬤都贏你', color: '#ffffff', size: 'xl', weight: 'bold' },
           { type: 'text', text: getTodayGreeting(), color: '#ddddff', size: 'sm' },
         ],
       },
@@ -34,7 +34,7 @@ const messages = [
         contents: [
           {
             type: 'text',
-            text: '每天花幾分鐘翻牌配對，幫助大腦保持靈活、提升記憶力！',
+            text: '連阿嬤都贏你！快來翻牌配對，三代同堂一起動動腦！',
             wrap: true, size: 'md', color: '#444444',
           },
           {
