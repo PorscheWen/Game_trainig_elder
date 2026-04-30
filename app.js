@@ -463,6 +463,7 @@ async function shareResult() {
     }
   } catch (e) {
     console.warn('[LIFF] 分享失敗:', e.message);
+    alert('分享失敗：' + e.message);
   }
 }
 
