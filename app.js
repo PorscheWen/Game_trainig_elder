@@ -338,9 +338,7 @@ function closeTrophy() {
 function shareBestScores() {
   const scores = loadBestScores();
   const config  = window.GAME_CONFIG || {};
-  const gameUrl = config.liffId
-    ? `https://liff.line.me/${config.liffId}`
-    : (config.gameUrl || location.href);
+  const gameUrl = config.gameUrl || location.href;
 
   const diffName  = { easy: '初級', medium: '中級', hard: '高級' };
   const diffEmoji = { easy: '🌱', medium: '🌿', hard: '🌳' };
@@ -522,9 +520,7 @@ function buildShareFlex(difficulty, timeStr, flips, gameUrl) {
 
 function shareResult() {
   const config  = window.GAME_CONFIG || {};
-  const gameUrl = config.liffId
-    ? `https://liff.line.me/${config.liffId}`
-    : (config.gameUrl || location.href);
+  const gameUrl = config.gameUrl || location.href;
 
   const diffName  = { easy: '初級', medium: '中級', hard: '高級' };
   const diffEmoji = { easy: '🌱', medium: '🌿', hard: '🌳' };
