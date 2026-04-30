@@ -26,7 +26,7 @@ const messages = [
         backgroundColor: '#5B6EE8', paddingAll: '20px',
         contents: [
           { type: 'text', text: '🧠 每日記憶訓練', color: '#ffffff', size: 'xl', weight: 'bold' },
-          { type: 'text', text: getTodayGreeting(), color: '#ffffffcc', size: 'sm' },
+          { type: 'text', text: getTodayGreeting(), color: '#ddddff', size: 'sm' },
         ],
       },
       body: {
@@ -35,7 +35,7 @@ const messages = [
           {
             type: 'text',
             text: '每天花幾分鐘翻牌配對，幫助大腦保持靈活、提升記憶力！',
-            wrap: true, size: 'md', color: '#444',
+            wrap: true, size: 'md', color: '#444444',
           },
           {
             type: 'box', layout: 'horizontal', spacing: 'sm',
