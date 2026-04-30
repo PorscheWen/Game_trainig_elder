@@ -1,9 +1,14 @@
 'use strict';
 
-const CACHE_NAME = 'memory-game-v5';
+const CACHE_NAME = 'memory-game-v6';
 const ASSETS = [
   './',
   './index.html',
+  './games.html',
+  './fruit.html',
+  './2048.html',
+  './sudoku.html',
+  './wordchain.html',
   './style.css',
   './app.js',
   './config.js',

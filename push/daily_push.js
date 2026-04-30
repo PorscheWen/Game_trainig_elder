@@ -52,7 +52,7 @@ const messages = [
         contents: [
           {
             type: 'button', style: 'primary', color: '#5B6EE8',
-            action: { type: 'uri', label: '🎮 開始遊戲', uri: gameUrl },
+            action: { type: 'uri', label: '🎮 翻牌記憶', uri: gameUrl },
           },
           {
             type: 'button', style: 'secondary',

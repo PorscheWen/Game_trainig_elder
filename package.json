@@ -3,7 +3,8 @@
   "version": "2.0.0",
   "description": "連阿嬤都贏你 │ Granny's Got Game - 三代同堂翻牌配對 PWA + LINE 每日推播",
   "scripts": {
-    "push": "node push/daily_push.js"
+    "push": "node push/daily_push.js",
+    "setup-richmenu": "node push/setup_richmenu.js"
   },
   "dependencies": {
     "dotenv": "^17.4.2"
