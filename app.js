@@ -370,8 +370,23 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// ===== LIFF 初始化 =====
+async function initLiff() {
+  if (typeof liff === 'undefined') return;
+  const liffId = document.querySelector('meta[name="liff-id"]')?.content;
+  if (!liffId) return;
+  try {
+    await liff.init({ liffId });
+    console.log('[LIFF] 初始化成功，isInClient:', liff.isInClient());
+  } catch (e) {
+    console.warn('[LIFF] 初始化失敗:', e.message);
+  }
+}
+
 // ===== 初始化 =====
-(function init() {
+(async function init() {
+  await initLiff();
+
   // 還原字體大小設定
   const savedFont = localStorage.getItem('memory_fontsize') || 'large';
   setFontSize(savedFont);
