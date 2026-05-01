@@ -18,7 +18,7 @@ const games = [
   { label: '數字拼圖',   sub: '2048',       hint: '點我開始', icon: '🔢', color: '#E85D3B' },
   { label: '文字接龍',   sub: '',           hint: '點我開始', icon: '✏️', color: '#3A86D9' },
   { label: '數獨',       sub: '簡易版',     hint: '點我開始', icon: '🎯', color: '#8E44AD' },
-  { label: '分享遊戲',   sub: '邀朋友來挑戰', hint: '點我分享', icon: '📤', color: '#E67E22' },
+  { label: '打地鼠',     sub: '1～10 關',    hint: '點我挑戰', icon: '🔨', color: '#7B5E3C' },
 ];
 
 const canvas = createCanvas(W, H);
