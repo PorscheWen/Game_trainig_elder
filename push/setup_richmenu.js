@@ -13,8 +13,11 @@ if (!ACCESS_TOKEN) {
   process.exit(1);
 }
 
-const memoryUrl = LIFF_ID ? `https://liff.line.me/${LIFF_ID}` : GAME_URL;
-const fruitUrl  = `${GAME_URL}fruit.html`;
+const memoryUrl      = LIFF_ID ? `https://liff.line.me/${LIFF_ID}` : GAME_URL;
+const fruitUrl       = `${GAME_URL}fruit.html`;
+const puzzle2048Url  = `${GAME_URL}2048.html`;
+const wordchainUrl   = `${GAME_URL}wordchain.html`;
+const sudokuUrl      = `${GAME_URL}sudoku.html`;
 const shareText = encodeURIComponent(`👵 連阿嬤都贏你！來挑戰看看！\n${memoryUrl}`);
 const shareUrl  = `https://line.me/R/msg/text/${shareText}`;
 
@@ -54,25 +57,21 @@ async function main() {
     console.log(`[setup] 刪除舊 rich menu: ${rm.richMenuId}`);
   }
 
-  // 建立新 rich menu（2500×843，三等分）
+  // 建立新 rich menu（2500×1686，2列×3欄，6款遊戲）
   const { richMenuId } = await lineApi('POST', '/v2/bot/richmenu', {
-    size: { width: 2500, height: 843 },
+    size: { width: 2500, height: 1686 },
     selected: true,
     name: '連阿嬤都贏你',
     chatBarText: '🎮 選一個遊戲',
     areas: [
-      {
-        bounds: { x: 0,    y: 0, width: 833,  height: 843 },
-        action: { type: 'uri', label: '翻牌記憶', uri: memoryUrl },
-      },
-      {
-        bounds: { x: 833,  y: 0, width: 834,  height: 843 },
-        action: { type: 'uri', label: '水果消消樂', uri: fruitUrl },
-      },
-      {
-        bounds: { x: 1667, y: 0, width: 833,  height: 843 },
-        action: { type: 'uri', label: '分享遊戲', uri: shareUrl },
-      },
+      // 第一列
+      { bounds: { x: 0,    y: 0,   width: 833, height: 843 }, action: { type: 'uri', label: '翻牌記憶',   uri: memoryUrl } },
+      { bounds: { x: 833,  y: 0,   width: 834, height: 843 }, action: { type: 'uri', label: '水果消消樂', uri: fruitUrl } },
+      { bounds: { x: 1667, y: 0,   width: 833, height: 843 }, action: { type: 'uri', label: '數字拼圖',   uri: puzzle2048Url } },
+      // 第二列
+      { bounds: { x: 0,    y: 843, width: 833, height: 843 }, action: { type: 'uri', label: '文字接龍',   uri: wordchainUrl } },
+      { bounds: { x: 833,  y: 843, width: 834, height: 843 }, action: { type: 'uri', label: '數獨',       uri: sudokuUrl } },
+      { bounds: { x: 1667, y: 843, width: 833, height: 843 }, action: { type: 'uri', label: '分享遊戲',   uri: shareUrl } },
     ],
   });
   console.log(`[setup] 建立 rich menu: ${richMenuId}`);
