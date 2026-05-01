@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="連阿嬤都贏你！打地鼠挑戰">
+  <meta name="description" content="連阿嬤都贏你！打地鼠關卡挑戰">
   <meta name="theme-color" content="#5B6EE8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>🔨 打地鼠</title>
@@ -13,6 +13,7 @@
       --bg: #F4F6FF;
       --header-height: 64px;
       --stats-height: 60px;
+      --progress-height: 6px;
       --control-height: 80px;
     }
 
@@ -41,12 +42,17 @@
       color: #fff; font-size: 1rem; padding: 8px 14px; cursor: pointer; white-space: nowrap;
     }
     .btn-back:active { transform: scale(0.95); }
-    .app-title { color: #fff; font-size: 1.2rem; font-weight: 700; }
+    .app-title { color: #fff; font-size: 1.15rem; font-weight: 700; text-align: center; }
     .header-timer {
       background: rgba(255,255,255,0.2); border-radius: 10px;
       color: #fff; font-size: 1rem; font-weight: 700; padding: 6px 12px;
-      min-width: 60px; text-align: center; font-variant-numeric: tabular-nums;
+      min-width: 58px; text-align: center; font-variant-numeric: tabular-nums;
     }
+    .header-timer.urgent {
+      background: rgba(231,76,60,0.75);
+      animation: timerPulse 0.5s ease infinite alternate;
+    }
+    @keyframes timerPulse { from { opacity: 1; } to { opacity: 0.55; } }
 
     /* ── Stats bar ── */
     .stats-bar {
@@ -54,40 +60,46 @@
       top: var(--header-height); left: 0; right: 0;
       height: var(--stats-height);
       background: #fff;
-      display: flex; align-items: center; justify-content: space-around;
-      padding: 0 12px;
+      display: flex; align-items: center;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       z-index: 90;
     }
     .stat-item {
       display: flex; flex-direction: column; align-items: center;
-      gap: 2px; flex: 1;
+      gap: 1px; flex: 1; padding: 0 4px;
     }
     .stat-item + .stat-item { border-left: 1px solid #EEEEF5; }
-    .stat-label { font-size: 0.75rem; color: #8888AA; }
+    .stat-label { font-size: 0.7rem; color: #9999BB; font-weight: 500; }
     .stat-value {
-      font-size: 1.3rem; font-weight: 700; color: var(--primary);
-      font-variant-numeric: tabular-nums;
+      font-size: 1.2rem; font-weight: 700; color: var(--primary);
+      font-variant-numeric: tabular-nums; white-space: nowrap;
     }
-    .diff-tabs { display: flex; gap: 4px; }
-    .diff-tab {
-      background: #eef0fd; color: var(--primary);
-      border: none; border-radius: 8px;
-      font-size: 0.8rem; font-weight: 700;
-      padding: 6px 10px; cursor: pointer;
-      transition: background 0.15s, color 0.15s;
+    .stat-value.sm { font-size: 0.95rem; }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      position: fixed;
+      top: calc(var(--header-height) + var(--stats-height));
+      left: 0; right: 0;
+      height: var(--progress-height);
+      background: #DDE2FF;
+      z-index: 89;
     }
-    .diff-tab.active { background: var(--primary); color: #fff; }
-    .diff-tab:active { transform: scale(0.93); }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #27AE60, #52C97A);
+      transition: width 0.2s ease;
+      border-radius: 0 3px 3px 0;
+    }
 
     /* ── Game area ── */
     .game-wrap {
       position: fixed;
-      top: calc(var(--header-height) + var(--stats-height));
+      top: calc(var(--header-height) + var(--stats-height) + var(--progress-height));
       left: 0; right: 0;
       bottom: var(--control-height);
       display: flex; align-items: center; justify-content: center;
-      padding: 16px 12px;
+      padding: 14px 12px;
     }
 
     /* ── Mole grid ── */
@@ -95,7 +107,7 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 14px;
-      width: min(100%, 340px);
+      width: min(100%, 330px);
     }
 
     /* ── Hole ── */
@@ -104,41 +116,30 @@
       position: relative;
       cursor: pointer;
     }
-    .hole:active { transform: scale(0.92); }
+    .hole:active { transform: scale(0.9); }
 
-    /* Grass platform */
     .hole-grass {
       position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 52%;
+      bottom: 0; left: 0; right: 0; height: 52%;
       background: linear-gradient(180deg, #5DB845, #3D9E28);
       border-radius: 50% 50% 16px 16px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.2), inset 0 -6px 10px rgba(0,0,0,0.15);
     }
-
-    /* Dark hole opening */
     .hole-pit {
       position: absolute;
-      bottom: 44%;
-      left: 50%; transform: translateX(-50%);
+      bottom: 44%; left: 50%; transform: translateX(-50%);
       width: 72%; height: 28%;
       background: #1A0A00;
       border-radius: 50%;
-      box-shadow: inset 0 4px 10px rgba(0,0,0,0.8);
+      box-shadow: inset 0 4px 10px rgba(0,0,0,0.85);
     }
-
-    /* Mole */
     .mole {
       position: absolute;
-      bottom: 34%;
-      left: 50%;
-      transform: translateX(-50%) translateY(120%);
-      font-size: clamp(2.2rem, 8vw, 3rem);
-      line-height: 1;
-      z-index: 2;
-      pointer-events: none;
-      transition: transform 0.18s cubic-bezier(0.34, 1.4, 0.64, 1),
-                  opacity 0.15s;
+      bottom: 34%; left: 50%;
+      transform: translateX(-50%) translateY(130%);
+      font-size: clamp(2rem, 8vw, 2.8rem);
+      line-height: 1; z-index: 2; pointer-events: none;
+      transition: transform 0.18s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.15s;
       opacity: 0;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
     }
@@ -147,42 +148,33 @@
       opacity: 1;
     }
     .hole.whacked .mole {
-      transform: translateX(-50%) translateY(120%);
+      transform: translateX(-50%) translateY(130%);
       opacity: 0;
-      transition: transform 0.12s ease-in, opacity 0.12s;
+      transition: transform 0.1s ease-in, opacity 0.1s;
     }
 
     /* Hit flash */
     .hit-flash {
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      background: rgba(255, 220, 0, 0.55);
-      pointer-events: none;
-      animation: hitAnim 0.35s ease forwards;
-      z-index: 5;
+      position: absolute; inset: 0; border-radius: 50%;
+      background: rgba(255, 220, 0, 0.6); pointer-events: none;
+      animation: hitAnim 0.3s ease forwards; z-index: 5;
     }
     @keyframes hitAnim {
-      0%   { opacity: 1; transform: scale(0.8); }
-      100% { opacity: 0; transform: scale(1.4); }
+      0%   { opacity: 1; transform: scale(0.7); }
+      100% { opacity: 0; transform: scale(1.5); }
     }
 
     /* Score popup */
     .score-popup {
-      position: absolute;
-      top: 5%; left: 50%;
+      position: absolute; top: 4%; left: 50%;
       transform: translateX(-50%);
-      font-size: 1.4rem; font-weight: 900;
-      color: #FFD700;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-      pointer-events: none;
-      animation: scoreFloat 0.65s ease forwards;
-      z-index: 10;
-      white-space: nowrap;
+      font-size: 1.3rem; font-weight: 900; color: #FFD700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5); pointer-events: none;
+      animation: scoreFloat 0.6s ease forwards; z-index: 10; white-space: nowrap;
     }
     @keyframes scoreFloat {
       0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
-      100% { opacity: 0; transform: translateX(-50%) translateY(-44px); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-40px); }
     }
 
     /* ── Control bar ── */
@@ -191,142 +183,163 @@
       height: var(--control-height);
       background: #fff;
       box-shadow: 0 -2px 12px rgba(91,110,232,0.1);
-      display: flex; align-items: center;
-      padding: 0 20px;
+      display: flex; align-items: center; padding: 0 20px;
     }
     .btn-restart {
       background: linear-gradient(135deg, var(--primary), #7B8EF0);
       color: #fff; border: none; border-radius: 50px;
-      padding: 14px 0; font-size: 1.1rem; font-weight: 700;
-      width: 100%;
-      box-shadow: 0 4px 16px rgba(91,110,232,0.4);
-      cursor: pointer;
+      padding: 14px 0; font-size: 1.05rem; font-weight: 700;
+      width: 100%; box-shadow: 0 4px 16px rgba(91,110,232,0.4); cursor: pointer;
     }
     .btn-restart:active { transform: scale(0.97); }
 
-    /* ── End overlay ── */
-    .end-overlay {
+    /* ── Overlays ── */
+    .overlay {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.65);
       z-index: 300;
       display: flex; align-items: center; justify-content: center;
       padding: 20px;
       opacity: 0; pointer-events: none;
-      transition: opacity 0.3s;
+      transition: opacity 0.28s;
     }
-    .end-overlay.open { opacity: 1; pointer-events: all; }
+    .overlay.open { opacity: 1; pointer-events: all; }
 
-    .end-panel {
-      background: #fff; border-radius: 28px;
-      padding: 36px 28px; max-width: 360px; width: 100%;
+    .panel {
+      background: #fff; border-radius: 26px;
+      padding: 30px 22px; max-width: 340px; width: 100%;
       text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-      transform: scale(0.8);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.28);
+      transform: scale(0.82);
       transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    .end-overlay.open .end-panel { transform: scale(1); }
+    .overlay.open .panel { transform: scale(1); }
 
-    .end-emoji {
-      font-size: 4.5rem; line-height: 1; margin-bottom: 10px;
+    .p-emoji {
+      font-size: 3.8rem; line-height: 1; margin-bottom: 8px;
       animation: bounce 1s ease infinite alternate;
     }
-    @keyframes bounce {
-      from { transform: translateY(0); }
-      to   { transform: translateY(-10px); }
-    }
-    .end-title { font-size: 2rem; font-weight: 800; color: #1A1A2E; margin-bottom: 4px; }
-    .end-sub { font-size: 0.95rem; color: #8888AA; margin-bottom: 20px; }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
 
-    .end-stats {
-      display: flex; gap: 10px; justify-content: center;
-      margin-bottom: 24px; flex-wrap: wrap;
+    .p-title { font-size: 1.7rem; font-weight: 800; color: #1A1A2E; margin-bottom: 4px; }
+    .p-sub   { font-size: 0.88rem; color: #8888AA; margin-bottom: 16px; }
+
+    /* Level clear */
+    .stars { font-size: 1.8rem; letter-spacing: 4px; margin-bottom: 10px; }
+    .clear-chips {
+      display: flex; gap: 8px; justify-content: center; margin-bottom: 18px;
     }
-    .end-stat {
+    .chip {
+      background: #EEF0FD; border-radius: 10px;
+      padding: 8px 14px; font-size: 0.88rem; font-weight: 600; color: var(--primary);
+    }
+    .auto-hint { font-size: 0.78rem; color: #AAAACC; margin-top: 10px; }
+
+    /* Stats cards */
+    .rcards {
+      display: flex; gap: 8px; justify-content: center;
+      margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .rcard {
       background: #EEF0FD; border-radius: 12px;
-      padding: 14px 16px; min-width: 96px;
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 10px 14px; min-width: 88px;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
     }
-    .end-stat.record {
-      background: linear-gradient(135deg, #FFD700, #FFA500); color: #fff;
-    }
-    .end-stat.record span { font-weight: 700; font-size: 1rem; }
-    .end-stat-icon { font-size: 1.4rem; }
-    .end-stat-label { font-size: 0.78rem; color: #8888AA; }
-    .end-stat-value { font-size: 1.3rem; font-weight: 700; color: var(--primary); }
+    .rcard.gold { background: linear-gradient(135deg, #FFD700, #FFA500); }
+    .rcard.gold .rc-label, .rcard.gold .rc-val { color: #fff; }
+    .rc-icon  { font-size: 1.2rem; }
+    .rc-label { font-size: 0.7rem; color: #9999BB; }
+    .rc-val   { font-size: 1.15rem; font-weight: 700; color: var(--primary); }
 
-    .end-buttons { display: flex; flex-direction: column; gap: 10px; }
-    .btn-share {
-      background: linear-gradient(135deg, #06C755, #00A040);
-      color: #fff; border: none; border-radius: 50px;
-      padding: 16px 32px; font-size: 1.1rem; font-weight: 700;
-      box-shadow: 0 4px 16px rgba(6,199,85,0.35); cursor: pointer;
-    }
-    .btn-again {
+    /* Buttons */
+    .btn-row { display: flex; flex-direction: column; gap: 9px; }
+    .btn-p {
       background: linear-gradient(135deg, var(--primary), #7B8EF0);
       color: #fff; border: none; border-radius: 50px;
-      padding: 16px 32px; font-size: 1.1rem; font-weight: 700;
-      box-shadow: 0 4px 16px rgba(91,110,232,0.35); cursor: pointer;
+      padding: 14px 0; font-size: 1.02rem; font-weight: 700;
+      width: 100%; box-shadow: 0 4px 14px rgba(91,110,232,0.35); cursor: pointer;
     }
-    .btn-share:active, .btn-again:active { transform: scale(0.97); }
+    .btn-s {
+      background: #F0F0F8; color: #5566AA;
+      border: none; border-radius: 50px;
+      padding: 12px 0; font-size: 0.95rem; font-weight: 600;
+      width: 100%; cursor: pointer;
+    }
+    .btn-g {
+      background: linear-gradient(135deg, #06C755, #00A040);
+      color: #fff; border: none; border-radius: 50px;
+      padding: 14px 0; font-size: 1.02rem; font-weight: 700;
+      width: 100%; box-shadow: 0 4px 14px rgba(6,199,85,0.35); cursor: pointer;
+    }
+    .btn-p:active, .btn-s:active, .btn-g:active { transform: scale(0.97); }
 
     /* ── Help overlay ── */
     .help-overlay {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.55);
       display: flex; align-items: center; justify-content: center;
-      z-index: 300;
+      z-index: 400;
     }
     .help-panel {
       background: #fff; border-radius: 20px;
-      padding: 28px 24px;
+      padding: 26px 22px;
       width: min(360px, calc(100vw - 32px));
-      text-align: center; max-height: 90vh; overflow-y: auto;
+      text-align: center; max-height: 92vh; overflow-y: auto;
     }
-    .help-panel h2 { font-size: 1.4rem; font-weight: 700; color: var(--primary); margin-bottom: 16px; }
-    .help-steps { text-align: left; margin-bottom: 20px; }
-    .help-step { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
+    .help-panel h2 { font-size: 1.35rem; font-weight: 700; color: var(--primary); margin-bottom: 14px; }
+    .help-steps { text-align: left; margin-bottom: 18px; }
+    .help-step { display: flex; gap: 11px; margin-bottom: 11px; align-items: flex-start; }
     .step-num {
       background: var(--primary); color: #fff;
-      border-radius: 50%; width: 28px; height: 28px; min-width: 28px;
+      border-radius: 50%; width: 26px; height: 26px; min-width: 26px;
       display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
+      font-weight: 700; font-size: 0.85rem; flex-shrink: 0; margin-top: 2px;
     }
-    .step-text { font-size: 0.95rem; line-height: 1.5; padding-top: 4px; color: #555577; }
+    .step-text { font-size: 0.9rem; line-height: 1.5; color: #555577; }
+    .level-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.82rem; margin-bottom: 16px; text-align: center;
+    }
+    .level-table th {
+      background: #EEF0FD; color: var(--primary);
+      padding: 6px 4px; font-weight: 700;
+    }
+    .level-table td { padding: 5px 4px; border-bottom: 1px solid #EEEEF5; color: #444; }
+    .level-table tr:last-child td { border-bottom: none; }
     .btn-got-it {
       background: var(--primary); color: #fff;
       border: none; border-radius: 12px;
-      font-size: 1.05rem; font-weight: 700;
-      padding: 14px 32px; cursor: pointer; width: 100%;
+      font-size: 1rem; font-weight: 700;
+      padding: 13px 28px; cursor: pointer; width: 100%;
     }
     .btn-got-it:active { transform: scale(0.97); }
-
-    /* ── 倒數閃紅 ── */
-    .header-timer.urgent { background: rgba(231,76,60,0.7); animation: pulse 0.5s ease infinite alternate; }
-    @keyframes pulse { from { opacity: 1; } to { opacity: 0.6; } }
   </style>
 </head>
 <body>
 
   <header class="app-header">
     <button class="btn-back" onclick="location.href='games.html'">← 返回</button>
-    <span class="app-title">🔨 打地鼠</span>
-    <div class="header-timer" id="timerDisplay">⏱ 60s</div>
+    <span class="app-title" id="appTitle">🔨 打地鼠 關卡挑戰</span>
+    <div class="header-timer" id="timerDisplay">⏱ 30s</div>
   </header>
 
   <div class="stats-bar">
     <div class="stat-item">
-      <span class="stat-label">分數</span>
-      <span class="stat-value" id="scoreDisplay">0</span>
+      <span class="stat-label">打中 / 目標</span>
+      <span class="stat-value" id="scoreDisplay">0 / 6</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">關卡進度</span>
+      <span class="stat-value sm" id="levelDisplay">第 1 關 / 10</span>
     </div>
     <div class="stat-item">
       <span class="stat-label">連擊</span>
       <span class="stat-value" id="comboDisplay">🔥0</span>
     </div>
-    <div class="diff-tabs">
-      <button class="diff-tab active" data-diff="easy">慢速</button>
-      <button class="diff-tab" data-diff="medium">中速</button>
-      <button class="diff-tab" data-diff="hard">快速</button>
-    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progressFill" style="width:0%"></div>
   </div>
 
   <div class="game-wrap">
@@ -334,59 +347,101 @@
   </div>
 
   <div class="control-bar">
-    <button class="btn-restart" id="btnRestart">🔁 重新開始</button>
+    <button class="btn-restart" id="btnRestart">🔁 從頭開始（第 1 關）</button>
   </div>
 
-  <!-- End overlay -->
-  <div class="end-overlay" id="endOverlay">
-    <div class="end-panel">
-      <div class="end-emoji" id="endEmoji">🎉</div>
-      <h2 class="end-title">時間到！</h2>
-      <p class="end-sub" id="endSub">打地鼠完成！</p>
-      <div class="end-stats">
-        <div class="end-stat">
-          <span class="end-stat-icon">🔨</span>
-          <span class="end-stat-label">打中數</span>
-          <span class="end-stat-value" id="endScore">0</span>
+  <!-- ── 過關 overlay ── -->
+  <div class="overlay" id="clearOverlay">
+    <div class="panel">
+      <div class="p-emoji" id="clearEmoji">🎉</div>
+      <div class="stars" id="clearStars">⭐⭐⭐</div>
+      <h2 class="p-title" id="clearTitle">第 1 關過關！</h2>
+      <p class="p-sub" id="clearSub">準備進入第 2 關</p>
+      <div class="clear-chips">
+        <div class="chip" id="clearChipScore">🔨 打中 6</div>
+        <div class="chip" id="clearChipTime">⏱ 剩 20s</div>
+        <div class="chip" id="clearChipCombo">🔥 連擊 3</div>
+      </div>
+      <button class="btn-p" id="btnNext">下一關 →</button>
+      <div class="auto-hint" id="autoHint">2 秒後自動進入下一關</div>
+    </div>
+  </div>
+
+  <!-- ── 失敗 overlay ── -->
+  <div class="overlay" id="gameOverOverlay">
+    <div class="panel">
+      <div class="p-emoji">😅</div>
+      <h2 class="p-title" id="goTitle">第 1 關失敗！</h2>
+      <p class="p-sub" id="goSub">差一點就過關了！</p>
+      <div class="rcards">
+        <div class="rcard">
+          <span class="rc-icon">🔨</span>
+          <span class="rc-label">打中 / 目標</span>
+          <span class="rc-val" id="goScore">0 / 6</span>
         </div>
-        <div class="end-stat">
-          <span class="end-stat-icon">🔥</span>
-          <span class="end-stat-label">最高連擊</span>
-          <span class="end-stat-value" id="endMaxCombo">0</span>
-        </div>
-        <div class="end-stat record" id="recordBadge" style="display:none">
-          <span>🏆 新紀錄！</span>
+        <div class="rcard">
+          <span class="rc-icon">🔥</span>
+          <span class="rc-label">最高連擊</span>
+          <span class="rc-val" id="goCombo">0</span>
         </div>
       </div>
-      <div class="end-buttons">
-        <button class="btn-share" id="btnShare">📤 分享成績</button>
-        <button class="btn-again" id="btnAgain">🔁 再玩一次</button>
+      <div class="btn-row">
+        <button class="btn-p" id="btnRetry">🔁 重試此關</button>
+        <button class="btn-s" id="btnReset">⏮ 從頭開始</button>
       </div>
     </div>
   </div>
 
-  <!-- Help overlay -->
+  <!-- ── 全破 Victory overlay ── -->
+  <div class="overlay" id="victoryOverlay">
+    <div class="panel">
+      <div class="p-emoji">🏆</div>
+      <h2 class="p-title">10 關全破！</h2>
+      <p class="p-sub">連阿嬤都佩服你！太厲害了！</p>
+      <div class="rcards">
+        <div class="rcard">
+          <span class="rc-icon">🐹</span>
+          <span class="rc-label">總打中數</span>
+          <span class="rc-val" id="victoryHits">0</span>
+        </div>
+        <div class="rcard gold">
+          <span class="rc-icon">👑</span>
+          <span class="rc-label">最高連擊</span>
+          <span class="rc-val" id="victoryCombo">0</span>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-g" id="btnVictoryShare">📤 分享成績</button>
+        <button class="btn-p" id="btnVictoryAgain">🔁 再挑戰一次</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Help overlay ── -->
   <div class="help-overlay" id="helpOverlay">
     <div class="help-panel">
-      <h2>🔨 怎麼玩？</h2>
+      <h2>🔨 打地鼠 — 關卡挑戰</h2>
       <div class="help-steps">
         <div class="help-step">
           <span class="step-num">1</span>
-          <p class="step-text">地鼠從洞裡冒出來，趕快點它！</p>
+          <p class="step-text">地鼠從洞裡冒出來，快點擊打中！</p>
         </div>
         <div class="help-step">
           <span class="step-num">2</span>
-          <p class="step-text">每打中一隻得 1 分，連續打中有連擊加成！</p>
+          <p class="step-text">在時間內達到目標打中數即可過關，進入下一關。</p>
         </div>
         <div class="help-step">
           <span class="step-num">3</span>
-          <p class="step-text">60 秒內打越多越高分，挑戰最高紀錄！</p>
-        </div>
-        <div class="help-step">
-          <span class="step-num">4</span>
-          <p class="step-text">選擇慢速／中速／快速調整難度。</p>
+          <p class="step-text">每關速度加快，第 4 關起同時出現多隻地鼠！</p>
         </div>
       </div>
+      <table class="level-table">
+        <tr><th>關卡</th><th>時間</th><th>目標</th><th>最多同時</th></tr>
+        <tr><td>1–3</td><td>30s</td><td>6 / 9 / 12</td><td>1 隻</td></tr>
+        <tr><td>4–7</td><td>30s</td><td>14–20</td><td>2 隻</td></tr>
+        <tr><td>8–9</td><td>30s</td><td>22 / 25</td><td>3 隻</td></tr>
+        <tr><td>10 👑</td><td>35s</td><td>28</td><td>3 隻（最快）</td></tr>
+      </table>
       <button class="btn-got-it" id="btnGotIt">我知道了，開始打！</button>
     </div>
   </div>
@@ -395,75 +450,85 @@
   <script>
     'use strict';
 
-    const DIFF_CFG = {
-      easy:   { spawnMs: 1100, upMs: 1600, maxActive: 1 },
-      medium: { spawnMs: 800,  upMs: 1150, maxActive: 2 },
-      hard:   { spawnMs: 550,  upMs: 750,  maxActive: 3 },
-    };
-    const GAME_DURATION = 60;
-    const GAME_URL = (window.GAME_CONFIG?.gameUrl || 'https://porschewen.github.io/GrannysGotGame/');
+    /* ── 10 關設定 ── */
+    const LEVELS = [
+      { time: 30, target: 6,  spawnMs: 1100, upMs: 1700, maxActive: 1 }, // L1
+      { time: 30, target: 9,  spawnMs: 950,  upMs: 1500, maxActive: 1 }, // L2
+      { time: 30, target: 12, spawnMs: 800,  upMs: 1300, maxActive: 1 }, // L3
+      { time: 30, target: 14, spawnMs: 700,  upMs: 1100, maxActive: 2 }, // L4
+      { time: 30, target: 16, spawnMs: 600,  upMs: 950,  maxActive: 2 }, // L5
+      { time: 30, target: 18, spawnMs: 520,  upMs: 800,  maxActive: 2 }, // L6
+      { time: 30, target: 20, spawnMs: 450,  upMs: 680,  maxActive: 2 }, // L7
+      { time: 30, target: 22, spawnMs: 380,  upMs: 560,  maxActive: 3 }, // L8
+      { time: 30, target: 25, spawnMs: 320,  upMs: 460,  maxActive: 3 }, // L9
+      { time: 35, target: 28, spawnMs: 250,  upMs: 370,  maxActive: 3 }, // L10 Boss
+    ];
+
+    const GAME_URL = window.GAME_CONFIG?.gameUrl || 'https://porschewen.github.io/GrannysGotGame/';
 
     let st = {
-      diff: 'easy',
+      level: 1,
       score: 0,
+      totalHits: 0,
       combo: 0,
       maxCombo: 0,
-      timeLeft: GAME_DURATION,
+      globalMaxCombo: 0,
+      timeLeft: 0,
       running: false,
       activeHoles: new Set(),
       hideTimers: [],
       spawnTimer: null,
       countTimer: null,
+      autoTimer: null,
     };
 
     /* ── Build 3×3 grid ── */
-    const grid = document.getElementById('moleGrid');
+    const moleGrid = document.getElementById('moleGrid');
     const holes = Array.from({ length: 9 }, (_, i) => {
       const hole = document.createElement('div');
       hole.className = 'hole';
-      hole.innerHTML = `
-        <div class="mole">🐹</div>
-        <div class="hole-pit"></div>
-        <div class="hole-grass"></div>`;
+      hole.innerHTML = `<div class="mole">🐹</div><div class="hole-pit"></div><div class="hole-grass"></div>`;
       hole.addEventListener('click', () => whack(i));
-      grid.appendChild(hole);
+      moleGrid.appendChild(hole);
       return hole;
     });
 
     /* ── Whack ── */
     function whack(i) {
-      if (!st.running || !st.activeHoles.has(i)) return;
+      if (!st.running || !st.activeHoles.has(i) || holes[i].dataset.w) return;
       const hole = holes[i];
-      if (hole.dataset.whacked) return;
-      hole.dataset.whacked = '1';
-
+      hole.dataset.w = '1';
       clearTimeout(hole._hide);
       hole.classList.remove('up');
       hole.classList.add('whacked');
       st.activeHoles.delete(i);
 
       st.score++;
+      st.totalHits++;
       st.combo++;
       if (st.combo > st.maxCombo) st.maxCombo = st.combo;
-      renderStats();
+      if (st.combo > st.globalMaxCombo) st.globalMaxCombo = st.combo;
 
-      // score popup
+      renderStats();
+      renderProgress();
+
+      // Score popup
       const pop = document.createElement('div');
       pop.className = 'score-popup';
-      pop.textContent = st.combo >= 3 ? `+${st.combo} 🔥` : '+1';
+      pop.textContent = st.combo >= 3 ? `+${st.combo}🔥` : '+1';
       hole.appendChild(pop);
       pop.addEventListener('animationend', () => pop.remove(), { once: true });
 
-      // hit flash
+      // Hit flash
       const flash = document.createElement('div');
       flash.className = 'hit-flash';
       hole.appendChild(flash);
       flash.addEventListener('animationend', () => flash.remove(), { once: true });
 
-      setTimeout(() => {
-        hole.classList.remove('whacked');
-        delete hole.dataset.whacked;
-      }, 300);
+      setTimeout(() => { hole.classList.remove('whacked'); delete hole.dataset.w; }, 280);
+
+      // Check level target
+      if (st.score >= LEVELS[st.level - 1].target) levelClear();
     }
 
     /* ── Show mole ── */
@@ -473,127 +538,203 @@
       hole.classList.add('up');
       st.activeHoles.add(i);
 
-      const upMs = DIFF_CFG[st.diff].upMs;
+      const cfg = LEVELS[st.level - 1];
       hole._hide = setTimeout(() => {
         hole.classList.remove('up');
         st.activeHoles.delete(i);
         if (st.activeHoles.size === 0) { st.combo = 0; renderStats(); }
-      }, upMs);
+      }, cfg.upMs);
       st.hideTimers.push(hole._hide);
     }
 
-    /* ── Spawn loop ── */
+    /* ── Spawn loop (1 mole per tick, limited by maxActive) ── */
     function spawnLoop() {
-      const cfg = DIFF_CFG[st.diff];
+      const cfg = LEVELS[st.level - 1];
+      if (st.activeHoles.size >= cfg.maxActive) return;
       const avail = [...Array(9).keys()].filter(i => !st.activeHoles.has(i));
-      if (avail.length === 0) return;
-      shuffle(avail);
-      const count = Math.min(cfg.maxActive - st.activeHoles.size, avail.length, 1 + (st.diff === 'hard' ? 1 : 0));
-      for (let k = 0; k < Math.max(count, 1); k++) showMole(avail[k]);
+      if (!avail.length) return;
+      showMole(avail[Math.floor(Math.random() * avail.length)]);
     }
 
-    /* ── Game flow ── */
-    function startGame() {
+    /* ── Start level n (1-indexed) ── */
+    function startLevel(n) {
       clearAll();
-      holes.forEach(h => { h.classList.remove('up', 'whacked'); delete h.dataset.whacked; });
-      st.score = 0; st.combo = 0; st.maxCombo = 0;
-      st.timeLeft = GAME_DURATION; st.running = true;
-      st.activeHoles.clear(); st.hideTimers = [];
-      document.getElementById('endOverlay').classList.remove('open');
+      closeOverlays();
+      resetHoles();
+
+      st.level = n;
+      st.score = 0;
+      st.combo = 0;
+      st.maxCombo = 0;
+      st.timeLeft = LEVELS[n - 1].time;
+      st.running = true;
+      st.activeHoles.clear();
+      st.hideTimers = [];
+
       renderStats();
       renderTimer();
+      renderProgress();
 
-      st.spawnTimer = setInterval(spawnLoop, DIFF_CFG[st.diff].spawnMs);
+      st.spawnTimer = setInterval(spawnLoop, LEVELS[n - 1].spawnMs);
       st.countTimer = setInterval(() => {
         st.timeLeft--;
         renderTimer();
-        if (st.timeLeft <= 0) endGame();
+        if (st.timeLeft <= 0) gameOver();
       }, 1000);
     }
 
-    function clearAll() {
-      clearInterval(st.spawnTimer);
-      clearInterval(st.countTimer);
-      st.hideTimers.forEach(t => clearTimeout(t));
-      st.hideTimers = [];
-    }
-
-    function endGame() {
+    /* ── Level clear ── */
+    function levelClear() {
       clearAll();
       st.running = false;
-      st.activeHoles.clear();
-      holes.forEach(h => { h.classList.remove('up', 'whacked'); delete h.dataset.whacked; });
+      resetHoles();
 
-      const isNew = saveScore(st.diff, st.score);
-      setTimeout(() => {
-        document.getElementById('endScore').textContent = st.score;
-        document.getElementById('endMaxCombo').textContent = st.maxCombo;
-        document.getElementById('recordBadge').style.display = isNew ? 'flex' : 'none';
-        document.getElementById('endEmoji').textContent =
-          st.score >= 25 ? '🏆' : st.score >= 15 ? '🎉' : '😅';
-        document.getElementById('endSub').textContent =
-          st.score >= 25 ? '連阿嬤都輸給你了！' : st.score >= 15 ? '打得不錯！' : '繼續努力！';
-        document.getElementById('endOverlay').classList.add('open');
-      }, 400);
+      if (st.level === 10) {
+        setTimeout(showVictory, 350);
+        return;
+      }
+
+      const timeLeft = st.timeLeft;
+      const stars = timeLeft > 15 ? '⭐⭐⭐' : timeLeft > 6 ? '⭐⭐' : '⭐';
+
+      document.getElementById('clearEmoji').textContent = stars === '⭐⭐⭐' ? '🎉' : '😊';
+      document.getElementById('clearStars').textContent = stars;
+      document.getElementById('clearTitle').textContent = `第 ${st.level} 關過關！`;
+      document.getElementById('clearSub').textContent = `準備進入第 ${st.level + 1} 關`;
+      document.getElementById('clearChipScore').textContent = `🔨 打中 ${st.score}`;
+      document.getElementById('clearChipTime').textContent = `⏱ 剩 ${timeLeft}s`;
+      document.getElementById('clearChipCombo').textContent = `🔥 連擊 ${st.maxCombo}`;
+
+      let cd = 2;
+      document.getElementById('autoHint').textContent = `${cd} 秒後自動進入下一關`;
+      document.getElementById('clearOverlay').classList.add('open');
+
+      const tick = () => {
+        cd--;
+        if (cd <= 0) {
+          doAdvance();
+        } else {
+          document.getElementById('autoHint').textContent = `${cd} 秒後自動進入下一關`;
+          st.autoTimer = setTimeout(tick, 1000);
+        }
+      };
+      st.autoTimer = setTimeout(tick, 1000);
     }
 
-    /* ── Helpers ── */
+    function doAdvance() {
+      clearTimeout(st.autoTimer);
+      startLevel(st.level + 1);
+    }
+
+    /* ── Game over ── */
+    function gameOver() {
+      clearAll();
+      st.running = false;
+      resetHoles();
+
+      const cfg = LEVELS[st.level - 1];
+      const gap = cfg.target - st.score;
+      document.getElementById('goTitle').textContent = `第 ${st.level} 關失敗！`;
+      document.getElementById('goSub').textContent =
+        gap <= 2 ? '差一點！再試一次！' :
+        gap <= 5 ? '加把勁，快打！' : '要更快更準喔！';
+      document.getElementById('goScore').textContent = `${st.score} / ${cfg.target}`;
+      document.getElementById('goCombo').textContent = st.maxCombo;
+      document.getElementById('gameOverOverlay').classList.add('open');
+    }
+
+    /* ── Victory ── */
+    function showVictory() {
+      document.getElementById('victoryHits').textContent = st.totalHits;
+      document.getElementById('victoryCombo').textContent = st.globalMaxCombo;
+      document.getElementById('victoryOverlay').classList.add('open');
+    }
+
+    /* ── Render ── */
     function renderStats() {
-      document.getElementById('scoreDisplay').textContent = st.score;
+      const cfg = LEVELS[st.level - 1];
+      document.getElementById('scoreDisplay').textContent = `${st.score} / ${cfg.target}`;
+      document.getElementById('levelDisplay').textContent = `第 ${st.level} 關 / 10`;
       document.getElementById('comboDisplay').textContent = `🔥${st.combo}`;
     }
 
     function renderTimer() {
       const el = document.getElementById('timerDisplay');
       el.textContent = `⏱ ${st.timeLeft}s`;
-      el.classList.toggle('urgent', st.timeLeft <= 10);
+      el.classList.toggle('urgent', st.timeLeft <= 8);
     }
 
-    function saveScore(diff, score) {
-      const data = JSON.parse(localStorage.getItem('mole_best') || '{}');
-      if ((data[diff] || 0) < score) {
-        data[diff] = score;
-        localStorage.setItem('mole_best', JSON.stringify(data));
-        return true;
-      }
-      return false;
+    function renderProgress() {
+      const cfg = LEVELS[st.level - 1];
+      document.getElementById('progressFill').style.width =
+        Math.min(100, (st.score / cfg.target) * 100) + '%';
     }
 
-    function shuffle(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
+    /* ── Helpers ── */
+    function clearAll() {
+      clearInterval(st.spawnTimer);
+      clearInterval(st.countTimer);
+      clearTimeout(st.autoTimer);
+      st.hideTimers.forEach(t => clearTimeout(t));
+      st.hideTimers = [];
     }
 
-    function shareResult() {
-      const name = { easy: '慢速', medium: '中速', hard: '快速' }[st.diff];
-      const txt = `🔨 打地鼠 ${name}\n🐹 打中：${st.score} 隻\n🔥 最高連擊：${st.maxCombo}\n\n來挑戰看看！👉 ${GAME_URL}mole.html`;
+    function closeOverlays() {
+      ['clearOverlay', 'gameOverOverlay', 'victoryOverlay'].forEach(id =>
+        document.getElementById(id).classList.remove('open'));
+    }
+
+    function resetHoles() {
+      holes.forEach(h => {
+        h.classList.remove('up', 'whacked');
+        delete h.dataset.w;
+      });
+      st.activeHoles.clear();
+    }
+
+    function resetRun() {
+      st.totalHits = 0;
+      st.globalMaxCombo = 0;
+    }
+
+    function shareVictory() {
+      const txt = `🔨 打地鼠 10 關全破！\n🐹 總打中：${st.totalHits} 隻\n🔥 最高連擊：${st.globalMaxCombo}\n\n來挑戰看看！👉 ${GAME_URL}mole.html`;
       if (navigator.share) {
         navigator.share({ text: txt }).catch(() => {});
       } else {
-        navigator.clipboard.writeText(txt).then(() => alert('成績已複製！')).catch(() => {});
+        navigator.clipboard.writeText(txt)
+          .then(() => alert('成績已複製！'))
+          .catch(() => {});
       }
     }
 
     /* ── Events ── */
-    document.getElementById('btnRestart').addEventListener('click', startGame);
-    document.getElementById('btnAgain').addEventListener('click', () => {
-      document.getElementById('endOverlay').classList.remove('open');
-      startGame();
+    document.getElementById('btnRestart').addEventListener('click', () => {
+      resetRun();
+      startLevel(1);
     });
-    document.getElementById('btnShare').addEventListener('click', shareResult);
+
+    document.getElementById('btnNext').addEventListener('click', doAdvance);
+
+    document.getElementById('btnRetry').addEventListener('click', () => {
+      closeOverlays();
+      startLevel(st.level);
+    });
+
+    document.getElementById('btnReset').addEventListener('click', () => {
+      resetRun();
+      startLevel(1);
+    });
+
+    document.getElementById('btnVictoryShare').addEventListener('click', shareVictory);
+    document.getElementById('btnVictoryAgain').addEventListener('click', () => {
+      resetRun();
+      startLevel(1);
+    });
+
     document.getElementById('btnGotIt').addEventListener('click', () => {
       document.getElementById('helpOverlay').style.display = 'none';
-      startGame();
-    });
-    document.querySelectorAll('.diff-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.diff-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        st.diff = tab.dataset.diff;
-        startGame();
-      });
+      startLevel(1);
     });
   </script>
 </body>
