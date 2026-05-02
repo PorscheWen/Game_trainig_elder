@@ -284,6 +284,10 @@
       display: flex; align-items: center; justify-content: center;
       z-index: 400;
     }
+    .help-overlay.is-hidden {
+      display: none !important;
+      pointer-events: none;
+    }
     .help-panel {
       background: #fff; border-radius: 20px;
       padding: 26px 22px;
@@ -315,6 +319,9 @@
       border: none; border-radius: 12px;
       font-size: 1rem; font-weight: 700;
       padding: 13px 28px; cursor: pointer; width: 100%;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
     }
     .btn-got-it:active { transform: scale(0.97); }
   </style>
@@ -351,7 +358,7 @@
   </div>
 
   <div class="control-bar">
-    <button class="btn-restart" id="btnRestart">🔁 從頭開始（第 1 關）</button>
+    <button type="button" class="btn-restart" id="btnRestart">🔁 從頭開始（第 1 關）</button>
   </div>
 
   <!-- ── 過關 overlay ── -->
@@ -446,7 +453,7 @@
         <tr><td>8–9</td><td>30s</td><td>22 / 25</td><td>3 隻</td></tr>
         <tr><td>10 👑</td><td>35s</td><td>28</td><td>3 隻</td></tr>
       </table>
-      <button class="btn-got-it" id="btnGotIt">我知道了，開始打！</button>
+      <button type="button" class="btn-got-it" id="btnGotIt" onclick="if(window.moleStartGame)window.moleStartGame();">我知道了，開始打！</button>
     </div>
   </div>
 
@@ -468,7 +475,9 @@
       { time: 35, target: 28, spawnMs: 250,  upMs: 370,  maxActive: 3 }, // L10 Boss
     ];
 
-    const GAME_URL = window.GAME_CONFIG?.gameUrl || 'https://porschewen.github.io/GrannysGotGame/';
+    /* 勿用 ?. 可選鏈：舊版 WebView／瀏覽器會整段 script 解析失敗 → 按鈕無反應 */
+    const GAME_URL = (window.GAME_CONFIG && window.GAME_CONFIG.gameUrl) ||
+      'https://porschewen.github.io/GrannysGotGame/';
 
     let st = {
       level: 1,
@@ -560,8 +569,16 @@
       showMole(avail[Math.floor(Math.random() * avail.length)]);
     }
 
+    function dismissHelp() {
+      const el = document.getElementById('helpOverlay');
+      if (!el) return;
+      el.classList.add('is-hidden');
+      el.setAttribute('aria-hidden', 'true');
+    }
+
     /* ── Start level n (1-indexed) ── */
     function startLevel(n) {
+      dismissHelp();
       clearAll();
       closeOverlays();
       resetHoles();
@@ -579,7 +596,11 @@
       renderTimer();
       renderProgress();
 
-      st.spawnTimer = setInterval(spawnLoop, LEVELS[n - 1].spawnMs);
+      const interval = LEVELS[n - 1].spawnMs;
+      st.spawnTimer = setInterval(spawnLoop, interval);
+      /* setInterval 會延遲第一次執行，立刻試著生出第一隻地鼠才有「開始就有反應」 */
+      spawnLoop();
+
       st.countTimer = setInterval(() => {
         st.timeLeft--;
         renderTimer();
@@ -735,10 +756,11 @@
       startLevel(1);
     });
 
-    document.getElementById('btnGotIt').addEventListener('click', () => {
-      document.getElementById('helpOverlay').style.display = 'none';
+    /* 全域入口：給 onclick 用，避免少數環境 addEventListener 異常 */
+    window.moleStartGame = function () {
       startLevel(1);
-    });
+    };
+    /* 開始鍵只用 HTML onclick，避免與 addEventListener 重複觸發；亦相容較舊 WebView */
   </script>
 </body>
 </html>
