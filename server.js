@@ -3,7 +3,6 @@
 require('dotenv').config();
 
 const express = require('express');
-const crypto  = require('https');   // reuse below
 const https   = require('https');
 const app     = express();
 const PORT    = process.env.PORT || 3000;
@@ -11,6 +10,11 @@ const PORT    = process.env.PORT || 3000;
 const ACCESS_TOKEN   = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 const CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
 const GAME_URL       = process.env.GAME_URL || 'https://porschewen.github.io/GrannysGotGame/';
+
+/** 轉發團體榜提交至 GitHub Actions（repository_dispatch）；勿在瀏覽器直接打 GitHub API（CORS） */
+const GH_OWNER          = process.env.GITHUB_REPO_OWNER;
+const GH_REPO           = process.env.GITHUB_REPO_NAME;
+const GH_DISPATCH_TOKEN = process.env.GITHUB_DISPATCH_TOKEN;
 
 // In-memory score store: Map<userId, { [game]: { value, extra, at } }>
 const scoreStore = new Map();
@@ -21,14 +25,14 @@ app.use(express.json({
 }));
 
 app.use((_req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://porschewen.github.io');
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   if (_req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
 
-// ── Score API ──
+// ── Score API（LINE／舊版客戶端） ──
 app.post('/api/score', (req, res) => {
   const { userId, game, value, extra } = req.body || {};
   if (!userId || !game || value === undefined) return res.status(400).json({ ok: false });
@@ -37,8 +41,82 @@ app.post('/api/score', (req, res) => {
   res.json({ ok: true });
 });
 
+/**
+ * 團體榜提交：轉發至 GitHub repository_dispatch → Actions 合併 leaderboard.json
+ * 榜單資料存於 repo，非此伺服器檔案。
+ */
+app.post('/api/leaderboard/submit', (req, res) => {
+  const { userId, displayName, game, value, extra } = req.body || {};
+  const num = Number(value);
+  if (!userId || !game || Number.isNaN(num)) {
+    return res.status(400).json({ ok: false, error: 'bad_request' });
+  }
+  if (!GH_OWNER || !GH_REPO || !GH_DISPATCH_TOKEN) {
+    return res.status(503).json({ ok: false, error: 'github_dispatch_not_configured' });
+  }
+
+  const payload = JSON.stringify({
+    event_type: 'leaderboard_submit',
+    client_payload: {
+      userId,
+      displayName: typeof displayName === 'string' ? displayName : '',
+      game,
+      value: num,
+      extra: extra && typeof extra === 'object' ? extra : {},
+    },
+  });
+
+  const reqOpts = {
+    hostname: 'api.github.com',
+    path: `/repos/${GH_OWNER}/${GH_REPO}/dispatches`,
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${GH_DISPATCH_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      'User-Agent': 'GrannysGotGame-server',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'Content-Length': Buffer.byteLength(payload),
+    },
+  };
+
+  const ghReq = https.request(reqOpts, (ghRes) => {
+    let d = '';
+    ghRes.on('data', (c) => { d += c; });
+    ghRes.on('end', () => {
+      if (ghRes.statusCode === 204) {
+        mirrorToLegacyStore(userId, game, {
+          value: num,
+          extra: extra && typeof extra === 'object' ? extra : {},
+          at: Date.now(),
+        });
+        return res.json({ ok: true });
+      }
+      console.error('[leaderboard/submit] GitHub', ghRes.statusCode, d);
+      res.status(502).json({ ok: false, error: 'github_error' });
+    });
+  });
+  ghReq.on('error', (e) => {
+    console.error('[leaderboard/submit]', e);
+    res.status(502).json({ ok: false });
+  });
+  ghReq.write(payload);
+  ghReq.end();
+});
+
+function mirrorToLegacyStore(userId, game, row) {
+  if (!userId || !row) return;
+  if (!scoreStore.has(userId)) scoreStore.set(userId, {});
+  const legacyKey = game === 'd2048' ? '2048' : game;
+  scoreStore.get(userId)[legacyKey] = {
+    value: row.value,
+    extra: row.extra || {},
+    at: row.at,
+  };
+}
+
 // ── Health / keep-alive ──
-app.get('/health', (_req, res) => res.json({ ok: true, scores: scoreStore.size }));
+app.get('/health', (_req, res) => res.json({ ok: true, users: scoreStore.size }));
 
 // ── LINE Webhook ──
 app.post('/webhook', (req, res) => {
@@ -70,19 +148,13 @@ function fmtTime(secs) {
 function buildScoreMessage(scores) {
   const diffName = { easy: '初級', medium: '中級', hard: '高級' };
 
-  // 翻牌記憶
   const memRows = ['easy', 'medium', 'hard'].map(d => {
     const s = scores[`memory_${d}`];
     return s ? `  ${diffName[d]}：${fmtTime(s.value)} / ${s.extra?.flips ?? '--'}次` : `  ${diffName[d]}：--`;
   }).join('\n');
 
-  // 2048
   const s2048 = scores['2048'];
-
-  // 文字接龍
   const swc = scores['wordchain'];
-
-  // 數獨
   const sudokuRows = [0, 1, 2, 3, 4].map(i => {
     const ss = scores[`sudoku_${i}`];
     return `  第${i + 1}題：${ss ? fmtTime(ss.value) : '--:--'}`;
@@ -111,7 +183,6 @@ function buildScoreMessage(scores) {
   return { type: 'text', text };
 }
 
-// ── LINE Reply API ──
 function lineReply(replyToken, messages) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({ replyToken, messages });
@@ -121,7 +192,7 @@ function lineReply(replyToken, messages) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ACCESS_TOKEN}`,
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
         'Content-Length': Buffer.byteLength(body),
       },
     }, res => {
@@ -135,7 +206,6 @@ function lineReply(replyToken, messages) {
   });
 }
 
-// ── Self keep-alive (Render free tier stays awake) ──
 if (process.env.RENDER_EXTERNAL_URL) {
   setInterval(() => {
     https.get(`${process.env.RENDER_EXTERNAL_URL}/health`, () => {}).on('error', () => {});

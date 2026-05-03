@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#5B6EE8">
   <title>💬 文字接龍</title>
+  <script src="config.js"></script>
+  <script src="team-scores-client.js"></script>
   <style>
     :root { --primary:#5B6EE8; --bg:#F4F6FF; }
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
@@ -178,7 +180,7 @@
       <div class="end-score" id="endScore">共接了 0 個詞語</div>
       <div class="end-best" id="endBest">最高紀錄：0 個</div>
       <div id="endNewBadge" class="end-new-badge" style="display:none">🏆 新紀錄！</div>
-      <button class="btn-share-word" id="btnShareWord">📤 分享成績</button>
+      <button class="btn-share-word" id="btnShareWord">📤 分享至 LINE</button>
       <button class="btn-play-again" id="btnPlayAgain">🔁 再玩一次</button>
     </div>
   </div>
@@ -266,6 +268,9 @@
         best = score;
         localStorage.setItem('wordchain_best', best);
         updateBestDisplay();
+        if (window.queueSubmitTeamScore) {
+          window.queueSubmitTeamScore({ game: 'wordchain', value: best, lowerIsBetter: false });
+        }
       }
       const isNew = score > 0 && score >= best;
       document.getElementById('endScore').textContent = `共接了 ${score} 個詞語`;
@@ -275,11 +280,16 @@
     }
 
     function shareWordChain() {
-      const txt = `💬 文字接龍\n本次接了 ${score} 個詞語\n最高紀錄：${best} 個\n\n快來挑戰我！👉 https://porschewen.github.io/GrannysGotGame/wordchain.html`;
-      if (navigator.share) {
-        navigator.share({ text: txt }).catch(() => {});
-      } else {
-        navigator.clipboard.writeText(txt).then(() => alert('成績已複製到剪貼簿！'));
+      var base = (window.getGameBaseUrl && window.getGameBaseUrl()) || 'https://porschewen.github.io/GrannysGotGame/';
+      var link = base.replace(/\/?$/, '/') + 'wordchain.html';
+      var foot = typeof window.appendLineShareLobbyFooter === 'function' ? window.appendLineShareLobbyFooter() : '';
+      const txt = `💬 文字接龍\n本次接了 ${score} 個詞語\n最高紀錄：${best} 個\n\n快來挑戰我！👉 ${link}` + foot;
+      if (window.shareTextViaLine) {
+        window.shareTextViaLine(txt);
+      } else if (navigator.share) {
+        navigator.share({ text: txt }).catch(function () {});
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(function () { alert('成績已複製到剪貼簿！'); });
       }
     }
 

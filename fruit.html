@@ -7,6 +7,8 @@
   <meta name="theme-color" content="#5B6EE8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>🍎 水果消消樂</title>
+  <script src="config.js"></script>
+  <script src="team-scores-client.js"></script>
   <style>
     :root {
       --primary: #5B6EE8;
@@ -280,6 +282,15 @@
       scoreEl.textContent = score;
     }
 
+    function checkFruitBest() {
+      var b = parseInt(localStorage.getItem('fruit_best') || '0', 10);
+      if (score <= b) return;
+      localStorage.setItem('fruit_best', String(score));
+      if (window.queueSubmitTeamScore) {
+        window.queueSubmitTeamScore({ game: 'fruit', value: score, lowerIsBetter: false });
+      }
+    }
+
     /* ── Click handler ── */
     function onCellClick(r, c) {
       if (busy) return;
@@ -336,6 +347,7 @@
         const matchSet = new Set(matches.map(({r, c}) => r * COLS + c));
         score += matches.length * 10 * combo;
         updateScore();
+        checkFruitBest();
         render(matchSet);
         await delay(380);
         matches.forEach(({r, c}) => { grid[r][c] = -1; });

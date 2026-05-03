@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "entries": {},
+  "games": {
+    "memory_easy": [],
+    "memory_medium": [],
+    "memory_hard": [],
+    "fruit": [],
+    "d2048": [],
+    "sudoku_0": [],
+    "sudoku_1": [],
+    "sudoku_2": [],
+    "sudoku_3": [],
+    "sudoku_4": [],
+    "wordchain": [],
+    "mole": []
+  }
+}

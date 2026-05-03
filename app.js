@@ -75,6 +75,14 @@ function saveBestScore(difficulty, seconds, flips) {
     isNew = true;
   }
   localStorage.setItem('memory_best', JSON.stringify(scores));
+  if (isNew && window.queueSubmitTeamScore) {
+    window.queueSubmitTeamScore({
+      game: `memory_${difficulty}`,
+      value: seconds,
+      lowerIsBetter: true,
+      extra: { flips },
+    });
+  }
   return isNew;
 }
 
@@ -203,12 +211,16 @@ function startGame(difficulty) {
 function shareResult() {
   const diffName = { easy: '初級', medium: '中級', hard: '高級' };
   const d = state.difficulty;
-  const gameUrl = (window.GAME_CONFIG?.gameUrl) || location.href;
-  const txt = `🃏 翻牌記憶 ${diffName[d]}\n⏱️ 時間：${DOM.winTime.textContent}\n🔄 翻牌：${state.flips} 次\n\n來挑戰看看！👉 ${gameUrl}`;
-  if (navigator.share) {
-    navigator.share({ text: txt }).catch(() => {});
-  } else {
-    navigator.clipboard.writeText(txt).then(() => alert('成績已複製到剪貼簿！'));
+  var base = (window.getGameBaseUrl && window.getGameBaseUrl()) || '';
+  var gameUrl = base ? base + 'index.html' : location.href;
+  var footer = typeof window.appendLineShareLobbyFooter === 'function' ? window.appendLineShareLobbyFooter() : '';
+  const txt = `🃏 翻牌記憶 ${diffName[d]}\n⏱️ 時間：${DOM.winTime.textContent}\n🔄 翻牌：${state.flips} 次\n\n來挑戰看看！👉 ${gameUrl}` + footer;
+  if (window.shareTextViaLine) {
+    window.shareTextViaLine(txt);
+  } else if (navigator.share) {
+    navigator.share({ text: txt }).catch(function () {});
+  } else if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(function () { alert('成績已複製到剪貼簿！'); });
   }
 }
 

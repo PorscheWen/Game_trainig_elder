@@ -427,7 +427,7 @@
         </div>
       </div>
       <div class="btn-row">
-        <button class="btn-g" id="btnVictoryShare">📤 分享成績</button>
+        <button class="btn-g" id="btnVictoryShare">📤 分享至 LINE</button>
         <button class="btn-p" id="btnVictoryAgain">🔁 再挑戰一次</button>
       </div>
     </div>
@@ -463,6 +463,7 @@
   </div>
 
   <script src="config.js"></script>
+  <script src="team-scores-client.js"></script>
   <script>
     'use strict';
 
@@ -697,6 +698,13 @@
       document.getElementById('victoryHits').textContent = st.totalHits;
       document.getElementById('victoryCombo').textContent = st.globalMaxCombo;
       document.getElementById('victoryOverlay').classList.add('open');
+      var prevBest = parseInt(localStorage.getItem('mole_best') || '0', 10);
+      if (st.totalHits > prevBest) {
+        localStorage.setItem('mole_best', String(st.totalHits));
+        if (window.queueSubmitTeamScore) {
+          window.queueSubmitTeamScore({ game: 'mole', value: st.totalHits, lowerIsBetter: false });
+        }
+      }
     }
 
     /* ── Render ── */
@@ -746,13 +754,16 @@
     }
 
     function shareVictory() {
-      const txt = `🔨 打地鼠 10 關全破！\n🐹 總打中：${st.totalHits} 隻\n🔥 最高連擊：${st.globalMaxCombo}\n\n來挑戰看看！👉 ${GAME_URL}mole.html`;
-      if (navigator.share) {
-        navigator.share({ text: txt }).catch(() => {});
-      } else {
-        navigator.clipboard.writeText(txt)
-          .then(() => alert('成績已複製！'))
-          .catch(() => {});
+      var base = (window.getGameBaseUrl && window.getGameBaseUrl()) || (GAME_URL || '').replace(/\/?$/, '/') || '';
+      var link = base ? base + 'mole.html' : GAME_URL + 'mole.html';
+      var foot = typeof window.appendLineShareLobbyFooter === 'function' ? window.appendLineShareLobbyFooter() : '';
+      const txt = `🔨 打地鼠 10 關全破！\n🐹 總打中：${st.totalHits} 隻\n🔥 最高連擊：${st.globalMaxCombo}\n\n來挑戰看看！👉 ${link}` + foot;
+      if (window.shareTextViaLine) {
+        window.shareTextViaLine(txt);
+      } else if (navigator.share) {
+        navigator.share({ text: txt }).catch(function () {});
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(function () { alert('成績已複製！'); }).catch(function () {});
       }
     }
 

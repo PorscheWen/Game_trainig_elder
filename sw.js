@@ -1,11 +1,15 @@
 'use strict';
 
-const CACHE_NAME = 'memory-game-v11';
+const CACHE_NAME = 'memory-game-v23';
 const ASSETS = [
   './',
   './index.html',
   './games.html',
+  './leaderboard.json',
+  './team-scores-client.js',
   './reload-latest.js',
+  './lobby-scores.js',
+  './config.js',
   './fruit.html',
   './2048.html',
   './sudoku.html',
@@ -13,7 +17,6 @@ const ASSETS = [
   './mole.html',
   './style.css',
   './app.js',
-  './config.js',
   './manifest.json',
   './icons/icon.svg',
   './icons/icon-192.png',

@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>🔢 簡易數獨</title>
+  <script src="config.js"></script>
+  <script src="team-scores-client.js"></script>
   <style>
     :root {
       --primary: #5B6EE8;
@@ -244,7 +246,7 @@
     <div class="win-time" id="winTime">用時 0:00</div>
     <div class="win-best" id="winBest">最佳紀錄：--:--</div>
     <div id="winNewBadge" class="win-new-badge" style="display:none">🏆 新紀錄！</div>
-    <button class="btn-share-sudoku" id="btnShareSudoku">📤 分享成績</button>
+    <button class="btn-share-sudoku" id="btnShareSudoku">📤 分享至 LINE</button>
     <button class="btn-win" id="btnWinNext">下一題 →</button>
   </div>
 </div>
@@ -449,6 +451,13 @@ function checkWin() {
   if (isNew) {
     localStorage.setItem(key, elapsed);
     updateBestDisplay(currentIdx);
+    if (window.queueSubmitTeamScore) {
+      window.queueSubmitTeamScore({
+        game: 'sudoku_' + currentIdx,
+        value: elapsed,
+        lowerIsBetter: true,
+      });
+    }
   }
   setTimeout(() => {
     document.getElementById('winSub').textContent = `第 ${currentIdx + 1} 題完成！太厲害了 👏`;
@@ -462,11 +471,16 @@ function checkWin() {
 function shareSudoku() {
   const elapsed = timerSec;
   const best = getBest(currentIdx);
-  const txt = `🔢 簡易數獨 第${currentIdx+1}題\n完成時間：${fmtTime(elapsed)}\n最佳紀錄：${fmtTime(best)}\n\n來挑戰看看！👉 https://porschewen.github.io/GrannysGotGame/sudoku.html`;
-  if (navigator.share) {
-    navigator.share({ text: txt }).catch(() => {});
-  } else {
-    navigator.clipboard.writeText(txt).then(() => alert('成績已複製到剪貼簿！'));
+  var base = (window.getGameBaseUrl && window.getGameBaseUrl()) || 'https://porschewen.github.io/GrannysGotGame/';
+  var link = base.replace(/\/?$/, '/') + 'sudoku.html';
+  var foot = typeof window.appendLineShareLobbyFooter === 'function' ? window.appendLineShareLobbyFooter() : '';
+  const txt = `🔢 簡易數獨 第${currentIdx+1}題\n完成時間：${fmtTime(elapsed)}\n最佳紀錄：${fmtTime(best)}\n\n來挑戰看看！👉 ${link}` + foot;
+  if (window.shareTextViaLine) {
+    window.shareTextViaLine(txt);
+  } else if (navigator.share) {
+    navigator.share({ text: txt }).catch(function () {});
+  } else if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(function () { alert('成績已複製到剪貼簿！'); });
   }
 }
 

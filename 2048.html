@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#5B6EE8">
   <title>🔢 數字拼圖 2048</title>
+  <script src="config.js"></script>
+  <script src="team-scores-client.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     html, body { height: 100%; background: #F4F6FF; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; user-select: none; overflow: hidden; }
@@ -158,7 +160,7 @@
     <div class="result-score" id="resultScore">0</div>
     <div id="newBestBadge" class="best-badge" style="display:none">🏆 新紀錄！</div>
     <p style="font-size:.9rem;color:#888;margin-bottom:12px">最高紀錄：<strong id="resultBest">0</strong></p>
-    <button class="btn-share" id="btnShare">📤 分享成績</button>
+    <button class="btn-share" id="btnShare">📤 分享至 LINE</button>
     <button class="btn-ok" id="btnResultOk" style="margin-top:10px">再玩一次</button>
   </div>
 </div>
@@ -242,7 +244,14 @@ function render(newCell, mergedCells) {
     boardLayer.appendChild(tile);
   }
   scoreEl.textContent = score;
-  if (score > best) { best=score; localStorage.setItem('game2048_best', best); bestEl.textContent=best; }
+  if (score > best) {
+    best = score;
+    localStorage.setItem('game2048_best', best);
+    bestEl.textContent = best;
+    if (window.queueSubmitTeamScore) {
+      window.queueSubmitTeamScore({ game: 'd2048', value: best, lowerIsBetter: false });
+    }
+  }
 }
 
 function slide(row) {
@@ -316,11 +325,16 @@ function showResult(win) {
 }
 
 function shareResult() {
-  const txt = `🔢 數字拼圖 2048\n本次得分：${score} 分\n最高紀錄：${best} 分\n\n快來挑戰我！👉 https://porschewen.github.io/GrannysGotGame/2048.html`;
-  if (navigator.share) {
-    navigator.share({ text: txt }).catch(() => {});
-  } else {
-    navigator.clipboard.writeText(txt).then(() => alert('成績已複製到剪貼簿！'));
+  var base = (window.getGameBaseUrl && window.getGameBaseUrl()) || 'https://porschewen.github.io/GrannysGotGame/';
+  var link = base.replace(/\/?$/, '/') + '2048.html';
+  var foot = typeof window.appendLineShareLobbyFooter === 'function' ? window.appendLineShareLobbyFooter() : '';
+  const txt = `🔢 數字拼圖 2048\n本次得分：${score} 分\n最高紀錄：${best} 分\n\n快來挑戰我！👉 ${link}` + foot;
+  if (window.shareTextViaLine) {
+    window.shareTextViaLine(txt);
+  } else if (navigator.share) {
+    navigator.share({ text: txt }).catch(function () {});
+  } else if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(function () { alert('成績已複製到剪貼簿！'); });
   }
 }
 

@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "canvas": "^3.2.3",
-    "dotenv": "^17.4.2"
+    "dotenv": "^17.4.2",
+    "express": "^4.21.2"
   },
   "engines": {
     "node": ">=18"
