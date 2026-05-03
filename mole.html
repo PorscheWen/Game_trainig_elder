@@ -109,9 +109,8 @@
     /* ── Mole grid ── */
     .mole-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      width: min(100%, 330px);
+      gap: 12px;
+      width: min(100%, 400px);
     }
 
     /* ── Hole ── */
@@ -125,26 +124,19 @@
     }
     .hole:active { transform: scale(0.9); }
 
-    .hole-grass {
-      position: absolute;
-      bottom: 0; left: 0; right: 0; height: 52%;
-      background: linear-gradient(180deg, #5DB845, #3D9E28);
-      border-radius: 50% 50% 16px 16px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2), inset 0 -6px 10px rgba(0,0,0,0.15);
-    }
     .hole-pit {
       position: absolute;
-      bottom: 44%; left: 50%; transform: translateX(-50%);
-      width: 72%; height: 28%;
+      bottom: 6%; left: 50%; transform: translateX(-50%);
+      width: 76%; height: 32%;
       background: #1A0A00;
       border-radius: 50%;
       box-shadow: inset 0 4px 10px rgba(0,0,0,0.85);
     }
     .mole {
       position: absolute;
-      bottom: 34%; left: 50%;
+      bottom: 22%; left: 50%;
       transform: translateX(-50%) translateY(130%);
-      font-size: clamp(2rem, 8vw, 2.8rem);
+      font-size: clamp(2.75rem, 12vw, 3.5rem);
       line-height: 1; z-index: 2; pointer-events: none;
       transition: transform 0.18s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.15s;
       opacity: 0;
@@ -363,7 +355,7 @@
   </div>
 
   <div class="control-bar">
-    <button type="button" class="btn-restart" id="btnRestart">🔁 從頭開始（第 1 關）</button>
+    <button type="button" class="btn-restart" id="btnRestart">🔁 重新開始此關卡</button>
   </div>
 
   <!-- ── 過關 overlay ── -->
@@ -448,15 +440,15 @@
         </div>
         <div class="help-step">
           <span class="step-num">3</span>
-          <p class="step-text">第 4 關起可能同時出現多隻地鼠，越後面目標越多！</p>
+          <p class="step-text">第 4 關起洞變多、可能同時出現多隻地鼠，越後面目標越多！</p>
         </div>
       </div>
       <table class="level-table">
         <tr><th>關卡</th><th>時間</th><th>目標</th><th>最多同時</th></tr>
-        <tr><td>1–3</td><td>30s</td><td>6 / 9 / 12</td><td>1 隻</td></tr>
-        <tr><td>4–7</td><td>30s</td><td>14–20</td><td>2 隻</td></tr>
-        <tr><td>8–9</td><td>30s</td><td>22 / 25</td><td>3 隻</td></tr>
-        <tr><td>10 👑</td><td>35s</td><td>28</td><td>3 隻</td></tr>
+        <tr><td>1–3</td><td>30s</td><td>6 / 9 / 12（6 洞）</td><td>1 隻</td></tr>
+        <tr><td>4–6</td><td>30s</td><td>14–18（9 洞）</td><td>2 隻</td></tr>
+        <tr><td>7–9</td><td>30s</td><td>20–25（12 洞）</td><td>2–3 隻</td></tr>
+        <tr><td>10 👑</td><td>35s</td><td>28（12 洞）</td><td>3 隻</td></tr>
       </table>
       <button type="button" class="btn-got-it" id="btnGotIt">我知道了，開始打！</button>
     </div>
@@ -520,16 +512,33 @@
       });
     }
 
-    /* ── Build 3×3 grid ── */
+    /* ── 洞口數隨關卡：1–3 關 6 洞，4–6 關 9 洞，7–10 關 12 洞 ── */
     const moleGrid = document.getElementById('moleGrid');
-    const holes = Array.from({ length: 9 }, (_, i) => {
-      const hole = document.createElement('div');
-      hole.className = 'hole';
-      hole.innerHTML = `<div class="mole">🐹</div><div class="hole-pit"></div><div class="hole-grass"></div>`;
-      bindTap(hole, function () { whack(i); });
-      moleGrid.appendChild(hole);
-      return hole;
-    });
+
+    function getGridLayout(level) {
+      if (level <= 3) return { cols: 3, count: 6 };
+      if (level <= 6) return { cols: 3, count: 9 };
+      return { cols: 4, count: 12 };
+    }
+
+    let holes = [];
+
+    function rebuildMoleGrid(level) {
+      var layout = getGridLayout(level);
+      moleGrid.innerHTML = '';
+      moleGrid.style.gridTemplateColumns = 'repeat(' + layout.cols + ', 1fr)';
+      holes = [];
+      for (var i = 0; i < layout.count; i++) {
+        var hole = document.createElement('div');
+        hole.className = 'hole';
+        hole.innerHTML = '<div class="mole">🐹</div><div class="hole-pit"></div>';
+        (function (idx) {
+          bindTap(hole, function () { whack(idx); });
+        })(i);
+        moleGrid.appendChild(hole);
+        holes.push(hole);
+      }
+    }
 
     /* ── Whack ── */
     function whack(i) {
@@ -589,7 +598,7 @@
     function spawnLoop() {
       const cfg = LEVELS[st.level - 1];
       if (st.activeHoles.size >= cfg.maxActive) return;
-      const avail = [...Array(9).keys()].filter(i => !st.activeHoles.has(i));
+      const avail = [...Array(holes.length).keys()].filter(i => !st.activeHoles.has(i));
       if (!avail.length) return;
       showMole(avail[Math.floor(Math.random() * avail.length)]);
     }
@@ -606,6 +615,7 @@
       dismissHelp();
       clearAll();
       closeOverlays();
+      rebuildMoleGrid(n);
       resetHoles();
 
       st.level = n;
@@ -769,8 +779,10 @@
 
     /* ── Events ── */
     document.getElementById('btnRestart').addEventListener('click', () => {
-      resetRun();
-      startLevel(1);
+      var lvl = st.level || 1;
+      var cur = st.score || 0;
+      if (cur > 0 && st.totalHits >= cur) st.totalHits -= cur;
+      startLevel(lvl);
     });
 
     document.getElementById('btnNext').addEventListener('click', doAdvance);

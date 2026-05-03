@@ -44,7 +44,11 @@
       position: relative;
       width: min(calc(100vw - 24px), 420px);
       flex-shrink: 0;
+      touch-action: none;
+      cursor: grab;
+      outline: none;
     }
+    .board-stack:active { cursor: grabbing; }
     .board-bg {
       background: #bbada0; border-radius: 10px; padding: 8px;
       display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
@@ -130,7 +134,7 @@
 
 <div class="game-wrap">
   <div class="best-row">最高分：<strong id="bestEl">0</strong></div>
-  <div class="board-stack">
+  <div class="board-stack" id="boardStack" tabindex="0" role="application" aria-label="2048 棋盤，可用方向鍵或 WASD 或滑鼠拖曳">
     <div class="board-bg" id="boardBg"></div>
     <div class="board-layer" id="boardLayer"></div>
   </div>
@@ -144,7 +148,7 @@
 <div class="overlay" id="helpOverlay">
   <div class="panel">
     <h2>🔢 怎麼玩？</h2>
-    <div class="help-step"><span class="sn">1</span><p class="st">滑動螢幕（或按方向鍵）移動所有數字</p></div>
+    <div class="help-step"><span class="sn">1</span><p class="st">滑動螢幕，或<strong>方向鍵／WASD</strong>，或<strong>滑鼠在棋盤上拖曳</strong>以移動所有數字</p></div>
     <div class="help-step"><span class="sn">2</span><p class="st">相同數字碰在一起會合併，分數累加</p></div>
     <div class="help-step"><span class="sn">3</span><p class="st">合出 <strong>2048</strong> 就贏了！</p></div>
     <div class="help-step"><span class="sn">4</span><p class="st">無法移動時遊戲結束</p></div>
@@ -199,6 +203,11 @@ function init() {
   addRandom(); addRandom();
   buildBg(); render();
   document.getElementById('resultOverlay').classList.add('hidden');
+  var ho = document.getElementById('helpOverlay');
+  var bs = document.getElementById('boardStack');
+  if (ho && bs && window.getComputedStyle(ho).display === 'none') {
+    bs.focus();
+  }
 }
 
 function addRandom() {
@@ -338,25 +347,89 @@ function shareResult() {
   }
 }
 
-// keyboard
-document.addEventListener('keydown', e=>{
-  const map = {ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};
-  if (map[e.key]) { e.preventDefault(); move(map[e.key]); }
+function isModalBlocking() {
+  var help = document.getElementById('helpOverlay');
+  if (help && window.getComputedStyle(help).display !== 'none') return true;
+  var res = document.getElementById('resultOverlay');
+  if (res && !res.classList.contains('hidden')) return true;
+  return false;
+}
+
+function applySwipe(dx, dy) {
+  if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
+  if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? 'right' : 'left');
+  else move(dy > 0 ? 'down' : 'up');
+}
+
+/* 鍵盤：方向鍵常被子母／注音輸入法吃掉；另支援 WASD（e.code 較不受 IME 影響） */
+document.addEventListener('keydown', function (e) {
+  if (isModalBlocking()) return;
+  var dir = null;
+  if (e.key === 'ArrowLeft') dir = 'left';
+  else if (e.key === 'ArrowRight') dir = 'right';
+  else if (e.key === 'ArrowUp') dir = 'up';
+  else if (e.key === 'ArrowDown') dir = 'down';
+  else if (e.code === 'KeyA') dir = 'left';
+  else if (e.code === 'KeyD') dir = 'right';
+  else if (e.code === 'KeyW') dir = 'up';
+  else if (e.code === 'KeyS') dir = 'down';
+  if (dir) {
+    e.preventDefault();
+    move(dir);
+  }
 });
 
-// touch
-let tx=0, ty=0;
-document.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; }, {passive:true});
-document.addEventListener('touchend', e=>{
-  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
-  if (Math.abs(dx)<30&&Math.abs(dy)<30) return;
-  if (Math.abs(dx)>Math.abs(dy)) move(dx>0?'right':'left');
-  else move(dy>0?'down':'up');
-}, {passive:true});
+/* 觸控滑動 */
+let tx = 0, ty = 0;
+document.addEventListener('touchstart', function (e) {
+  if (isModalBlocking()) return;
+  tx = e.touches[0].clientX;
+  ty = e.touches[0].clientY;
+}, { passive: true });
+document.addEventListener('touchend', function (e) {
+  if (isModalBlocking()) return;
+  var dx = e.changedTouches[0].clientX - tx;
+  var dy = e.changedTouches[0].clientY - ty;
+  applySwipe(dx, dy);
+}, { passive: true });
+
+/* 電腦：滑鼠／觸控板在棋盤上拖曳（與手機滑動相同邏輯） */
+(function bindBoardPointer() {
+  var stack = document.getElementById('boardStack');
+  if (!stack) return;
+  var px = 0, py = 0, active = false;
+  stack.addEventListener('pointerdown', function (e) {
+    if (isModalBlocking()) return;
+    if (e.button !== 0) return;
+    active = true;
+    px = e.clientX;
+    py = e.clientY;
+    try {
+      stack.setPointerCapture(e.pointerId);
+    } catch (err) {}
+  });
+  stack.addEventListener('pointerup', function (e) {
+    if (!active) return;
+    active = false;
+    try {
+      stack.releasePointerCapture(e.pointerId);
+    } catch (err) {}
+    var dx = e.clientX - px;
+    var dy = e.clientY - py;
+    applySwipe(dx, dy);
+  });
+  stack.addEventListener('pointercancel', function () {
+    active = false;
+  });
+})();
 
 document.getElementById('btnRestart').addEventListener('click', init);
 document.getElementById('btnResultOk').addEventListener('click', ()=>{ document.getElementById('resultOverlay').classList.add('hidden'); init(); });
-document.getElementById('btnGotIt').addEventListener('click', ()=>{ document.getElementById('helpOverlay').style.display='none'; });
+document.getElementById('btnGotIt').addEventListener('click', function () {
+  document.getElementById('helpOverlay').style.display = 'none';
+  var stack = document.getElementById('boardStack');
+  if (stack) stack.focus();
+});
 document.getElementById('btnShare').addEventListener('click', shareResult);
 
 window.addEventListener('resize', ()=>render());

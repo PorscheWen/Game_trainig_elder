@@ -23,7 +23,7 @@
 
 - **前端：** HTML5、CSS3、原生 JavaScript（無框架）
 - **PWA：** `manifest.json`、`sw.js`（快取、可安裝）
-- **選用後端：** Node.js + Express（`server.js`，LINE Webhook／分數 API 等；部署於 Render）
+- **選用後端：** Node.js + Express（`server.js`，LINE Webhook／團體榜轉發等；可本機執行或自架）
 - **部署：** GitHub Pages（靜態站）
 
 ---

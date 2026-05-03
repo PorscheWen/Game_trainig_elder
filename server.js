@@ -206,10 +206,4 @@ function lineReply(replyToken, messages) {
   });
 }
 
-if (process.env.RENDER_EXTERNAL_URL) {
-  setInterval(() => {
-    https.get(`${process.env.RENDER_EXTERNAL_URL}/health`, () => {}).on('error', () => {});
-  }, 14 * 60 * 1000);
-}
-
 app.listen(PORT, () => console.log(`[server] listening on ${PORT}`));

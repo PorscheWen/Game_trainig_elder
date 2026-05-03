@@ -297,8 +297,7 @@
 
     <div class="tab-panel" id="panelGames" role="tabpanel" aria-labelledby="tabGames">
     <div class="section-title">一鍵進入遊戲</div>
-    <nav class="quick-links" aria-label="團體榜與快速開啟各遊戲">
-      <a class="quick-link" href="#scores" id="linkQuickScores" title="切換至團體最高分">🏆 團體榜</a>
+    <nav class="quick-links" aria-label="快速開啟各遊戲">
       <a class="quick-link" href="index.html">🧠 翻牌</a>
       <a class="quick-link" href="fruit.html">🍎 消消樂</a>
       <a class="quick-link" href="2048.html">🔢 2048</a>
@@ -470,15 +469,6 @@
     }
     if (tabScores) {
       tabScores.addEventListener('click', function () {
-        goLobbyScores();
-        refreshScores();
-      });
-    }
-
-    var linkQuick = document.getElementById('linkQuickScores');
-    if (linkQuick) {
-      linkQuick.addEventListener('click', function (e) {
-        e.preventDefault();
         goLobbyScores();
         refreshScores();
       });

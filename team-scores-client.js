@@ -135,15 +135,42 @@
     return profileInflight;
   };
 
+  var ANON_PLAYER_KEY = 'team_score_anon_user_id';
+
+  /** 非 LINE 內／未設定 LIFF 時，用每瀏覽器一組穩定 ID 仍能上傳團體榜（server 只要求字串 userId） */
+  function getAnonymousPlayerId() {
+    try {
+      var id = localStorage.getItem(ANON_PLAYER_KEY);
+      if (id && id.indexOf('anon_') === 0 && id.length >= 12) return id;
+      var rand;
+      if (self.crypto && self.crypto.getRandomValues) {
+        var bytes = new Uint8Array(16);
+        self.crypto.getRandomValues(bytes);
+        rand = Array.prototype.map
+          .call(bytes, function (b) {
+            return ('0' + b.toString(16)).slice(-2);
+          })
+          .join('');
+      } else {
+        rand = String(Date.now()) + Math.random().toString(36).slice(2, 18);
+      }
+      id = 'anon_' + rand;
+      localStorage.setItem(ANON_PLAYER_KEY, id);
+      return id;
+    } catch (e) {
+      return 'anon_' + String(Date.now()) + Math.random().toString(36).slice(2, 10);
+    }
+  }
+
   window.trySubmitTeamScore = function trySubmitTeamScore(opts) {
     var base = getScoreApiBase();
     if (!base || !opts || !opts.game) return Promise.resolve(false);
     /* 上傳仍走 Node（server.js 轉發 GitHub dispatch）；瀏覽器無法直連 api.github.com */
-    return window.ensureLineProfile().then(function (prof) {
-      if (!prof || !prof.userId) return false;
+
+    function postScore(userId, displayName) {
       var body = {
-        userId: prof.userId,
-        displayName: prof.displayName || '',
+        userId: userId,
+        displayName: displayName || '',
         game: opts.game,
         value: Number(opts.value),
         extra: opts.extra || {},
@@ -164,6 +191,13 @@
         .catch(function () {
           return false;
         });
+    }
+
+    return window.ensureLineProfile().then(function (prof) {
+      if (prof && prof.userId) {
+        return postScore(prof.userId, prof.displayName || '');
+      }
+      return postScore(getAnonymousPlayerId(), '訪客');
     });
   };
 
@@ -183,7 +217,7 @@
 
   function top3ListHtml(gameKey, rows) {
     if (!rows || !rows.length) {
-      return '<p class="ls-empty">尚無榜單</p>';
+      return '<p class="ls-empty">阿嬤等你來挑戰</p>';
     }
     var lis = [];
     for (var i = 0; i < rows.length && i < 3; i++) {
@@ -219,15 +253,15 @@
           var t = (G[x[0]] && G[x[0]][0]) || null;
           if (t) parts.push(x[1] + ' ' + formatValue(x[0], t));
         });
-        return parts.length ? '🏆 ' + parts.join(' · ') : '尚無榜單';
+        return parts.length ? '🏆 ' + parts.join(' · ') : '阿嬤等你來挑戰';
       }
       case 'fruit': {
         var tf = (G.fruit && G.fruit[0]) || null;
-        return tf ? '🏆 ' + formatValue('fruit', tf) : '尚無榜單';
+        return tf ? '🏆 ' + formatValue('fruit', tf) : '阿嬤等你來挑戰';
       }
       case 'd2048': {
         var t2 = (G.d2048 && G.d2048[0]) || null;
-        return t2 ? '🏆 ' + formatValue('d2048', t2) : '尚無榜單';
+        return t2 ? '🏆 ' + formatValue('d2048', t2) : '阿嬤等你來挑戰';
       }
       case 'sudoku': {
         var parts2 = [];
@@ -236,15 +270,15 @@
           var top = (G[k] && G[k][0]) || null;
           if (top) parts2.push('第' + (i + 1) + '題 ' + formatValue(k, top));
         }
-        return parts2.length ? '🏆 ' + parts2.join(' · ') : '尚無榜單';
+        return parts2.length ? '🏆 ' + parts2.join(' · ') : '阿嬤等你來挑戰';
       }
       case 'wordchain': {
         var tw = (G.wordchain && G.wordchain[0]) || null;
-        return tw ? '🏆 ' + formatValue('wordchain', tw) : '尚無榜單';
+        return tw ? '🏆 ' + formatValue('wordchain', tw) : '阿嬤等你來挑戰';
       }
       case 'mole': {
         var tm = (G.mole && G.mole[0]) || null;
-        return tm ? '🏆 ' + formatValue('mole', tm) : '尚無榜單';
+        return tm ? '🏆 ' + formatValue('mole', tm) : '阿嬤等你來挑戰';
       }
       default:
         return '—';
@@ -351,7 +385,7 @@
       lines.push(title);
       var rows = G[gameKey] || [];
       if (!rows.length) {
-        lines.push('  尚無榜單');
+        lines.push('  阿嬤等你來挑戰');
         lines.push('');
         return;
       }

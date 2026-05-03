@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_NAME = 'memory-game-v23';
+const CACHE_NAME = 'memory-game-v28';
 const ASSETS = [
   './',
   './index.html',

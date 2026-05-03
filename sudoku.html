@@ -86,7 +86,7 @@
     .cell.conflict { color: #e74c3c !important; }
     .cell.user { color: var(--primary); }
 
-    /* Numpad：2×3 網格，數字 1～6 重新排列（見 NUMPAD_ORDER） */
+    /* Numpad：2×3 網格，數字 1～6 由小到大左到右、上到下 */
     .numpad {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -255,7 +255,7 @@
 'use strict';
 
 /** 下方數字鍵排列順序（仍為 1～6 各一顆，僅改順序與版面為 2×3） */
-const NUMPAD_ORDER = [4, 1, 6, 2, 5, 3];
+const NUMPAD_ORDER = [1, 2, 3, 4, 5, 6];
 const HELP_SEEN_KEY = 'sudoku_help_seen_v1';
 
 const PUZZLES = [

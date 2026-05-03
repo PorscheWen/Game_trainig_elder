@@ -5,9 +5,10 @@ window.GAME_CONFIG = {
   leaderboardDataPath: 'leaderboard.json',
   /**
    * 成績上傳用（勿結尾斜線）。因瀏覽器無法直連 GitHub API，須由 Node（server.js）轉發 repository_dispatch。
-   * 空白則僅顯示榜單、無法從遊戲上傳；本地測試：http://127.0.0.1:3000
+   * 空白則僅顯示榜單、無法從遊戲上傳。本機有跑 server.js 時可設：http://127.0.0.1:3000
+   * 在 LINE 內若已設定 liffId 會以上傳 LINE 身份為主；一般瀏覽器則用本地匿名 ID 仍可上傳。
    */
-  scoreApiUrl: 'https://grannys-got-game-api.onrender.com',
+  scoreApiUrl: '',
   /** LINE Developers → LIFF → 你的 LIFF App ID（在 LINE 內開啟遊戲時用于取得 User ID） */
   liffId: '',
 };
