@@ -46,7 +46,7 @@
     }
     if (gameKey === 'wordchain') return v + ' 詞';
     if (gameKey === 'd2048' || gameKey === 'fruit') return v + ' 分';
-    if (gameKey === 'mole') return v + ' 隻（全破累計）';
+    if (gameKey === 'mole') return v + ' 隻（單次累計）';
     return String(v);
   }
 

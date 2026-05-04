@@ -66,6 +66,10 @@
       font-variant-numeric: tabular-nums; white-space: nowrap;
     }
     .stat-value.sm { font-size: 0.95rem; }
+    .stat-best {
+      font-size: 0.62rem; color: #8896AB; font-weight: 600; margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+    }
 
     /* 中欄大計時器 */
     .stat-timer { flex: 1.2; }
@@ -222,6 +226,9 @@
 
     .p-title { font-size: 1.7rem; font-weight: 800; color: #1A1A2E; margin-bottom: 4px; }
     .p-sub   { font-size: 0.88rem; color: #8888AA; margin-bottom: 16px; }
+    .victory-best-line {
+      font-size: 0.82rem; color: #8896AB; text-align: center; margin: -6px 0 14px; font-weight: 600; line-height: 1.45;
+    }
 
     /* Level clear */
     .stars { font-size: 1.8rem; letter-spacing: 4px; margin-bottom: 10px; }
@@ -335,6 +342,7 @@
     <div class="stat-item">
       <span class="stat-label">點擊數 / 目標</span>
       <span class="stat-value" id="scoreDisplay">0 / 6</span>
+      <span class="stat-best" id="moleBestInline" aria-live="polite">本機最佳 —</span>
     </div>
     <div class="stat-item stat-timer">
       <span class="stat-label">⏱ 剩餘秒數</span>
@@ -418,6 +426,7 @@
           <span class="rc-val" id="victoryCombo">0</span>
         </div>
       </div>
+      <p class="victory-best-line" id="victoryBestLine" aria-live="polite"></p>
       <div class="btn-row">
         <button class="btn-g" id="btnVictoryShare">📤 分享至 LINE</button>
         <button class="btn-p" id="btnVictoryAgain">🔁 再挑戰一次</button>
@@ -686,11 +695,36 @@
       startLevel(st.level + 1);
     }
 
+    function renderMoleBestDisplay() {
+      var el = document.getElementById('moleBestInline');
+      if (!el) return;
+      var b = parseInt(localStorage.getItem('mole_best') || '0', 10);
+      el.textContent = isFinite(b) && b > 0 ? '本機最佳 ' + b + ' 隻' : '本機最佳 —';
+    }
+
+    /** 單次挑戰累計打中數（不論是否全破）創新高時寫入 */
+    function persistMoleRunBestIfImproved() {
+      var cur = st.totalHits || 0;
+      if (cur <= 0) return false;
+      var prev = parseInt(localStorage.getItem('mole_best') || '0', 10);
+      if (cur <= prev) return false;
+      try {
+        localStorage.setItem('mole_best', String(cur));
+      } catch (e) {}
+      if (window.queueSubmitTeamScore) {
+        window.queueSubmitTeamScore({ game: 'mole', value: cur, lowerIsBetter: false });
+      }
+      return true;
+    }
+
     /* ── Game over ── */
     function gameOver() {
       clearAll();
       st.running = false;
       resetHoles();
+
+      persistMoleRunBestIfImproved();
+      renderMoleBestDisplay();
 
       const cfg = LEVELS[st.level - 1];
       const gap = cfg.target - st.score;
@@ -707,14 +741,15 @@
     function showVictory() {
       document.getElementById('victoryHits').textContent = st.totalHits;
       document.getElementById('victoryCombo').textContent = st.globalMaxCombo;
-      document.getElementById('victoryOverlay').classList.add('open');
-      var prevBest = parseInt(localStorage.getItem('mole_best') || '0', 10);
-      if (st.totalHits > prevBest) {
-        localStorage.setItem('mole_best', String(st.totalHits));
-        if (window.queueSubmitTeamScore) {
-          window.queueSubmitTeamScore({ game: 'mole', value: st.totalHits, lowerIsBetter: false });
-        }
+      var isNew = persistMoleRunBestIfImproved();
+      renderMoleBestDisplay();
+      var lineEl = document.getElementById('victoryBestLine');
+      if (lineEl) {
+        var now = parseInt(localStorage.getItem('mole_best') || '0', 10);
+        lineEl.textContent =
+          '本機最佳（單次累計）：' + now + ' 隻' + (isNew ? '　·　🆕 新紀錄！' : '');
       }
+      document.getElementById('victoryOverlay').classList.add('open');
     }
 
     /* ── Render ── */
@@ -809,6 +844,11 @@
 
     bindTap(document.getElementById('btnGotIt'), function () {
       if (window.moleStartGame) window.moleStartGame();
+    });
+
+    renderMoleBestDisplay();
+    window.addEventListener('pageshow', function () {
+      renderMoleBestDisplay();
     });
   </script>
 </body>

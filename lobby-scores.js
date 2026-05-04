@@ -66,7 +66,7 @@
       }
       if (gameId === 'mole') {
         var m = parseInt(localStorage.getItem('mole_best') || '0', 10);
-        return isFinite(m) && m > 0 ? m + ' 隻（全破累計）' : '尚無紀錄';
+        return isFinite(m) && m > 0 ? m + ' 隻（單次挑戰累計）' : '尚無紀錄';
       }
     } catch (e) {}
     return '尚無紀錄';
