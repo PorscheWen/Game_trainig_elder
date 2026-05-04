@@ -274,7 +274,7 @@
 
   function top3ListHtml(gameKey, rows) {
     if (!rows || !rows.length) {
-      return '<p class="ls-empty">阿嬤等你來挑戰</p>';
+      return '<p class="ls-empty ls-empty-muted">尚無上榜紀錄</p>';
     }
     var lis = [];
     for (var i = 0; i < rows.length && i < 3; i++) {
@@ -298,10 +298,10 @@
   }
 
   window.getTeamCardSummary = function getTeamCardSummary(gameId) {
-    if (!getLeaderboardJsonUrl()) return '團體榜：請設定 gameUrl';
+    if (!getLeaderboardJsonUrl()) return '請於 config 設定 gameUrl';
     if (!window.__teamLbReady) return '載入中…';
     var G = window.__teamLeaderboard;
-    if (!G) return '阿嬤等你／妳來挑戰';
+    if (!G) return '尚無榜單';
 
     switch (gameId) {
       case 'memory': {
@@ -310,15 +310,15 @@
           var t = (G[x[0]] && G[x[0]][0]) || null;
           if (t) parts.push(x[1] + ' ' + formatValue(x[0], t));
         });
-        return parts.length ? '🏆 ' + parts.join(' · ') : '阿嬤等你來挑戰';
+        return parts.length ? '🏆 ' + parts.join(' · ') : '尚無紀錄';
       }
       case 'fruit': {
         var tf = (G.fruit && G.fruit[0]) || null;
-        return tf ? '🏆 ' + formatValue('fruit', tf) : '阿嬤等你來挑戰';
+        return tf ? '🏆 ' + formatValue('fruit', tf) : '尚無紀錄';
       }
       case 'd2048': {
         var t2 = (G.d2048 && G.d2048[0]) || null;
-        return t2 ? '🏆 ' + formatValue('d2048', t2) : '阿嬤等你來挑戰';
+        return t2 ? '🏆 ' + formatValue('d2048', t2) : '尚無紀錄';
       }
       case 'sudoku': {
         var parts2 = [];
@@ -327,15 +327,15 @@
           var top = (G[k] && G[k][0]) || null;
           if (top) parts2.push('第' + (i + 1) + '題 ' + formatValue(k, top));
         }
-        return parts2.length ? '🏆 ' + parts2.join(' · ') : '阿嬤等你來挑戰';
+        return parts2.length ? '🏆 ' + parts2.join(' · ') : '尚無紀錄';
       }
       case 'wordchain': {
         var tw = (G.wordchain && G.wordchain[0]) || null;
-        return tw ? '🏆 ' + formatValue('wordchain', tw) : '阿嬤等你來挑戰';
+        return tw ? '🏆 ' + formatValue('wordchain', tw) : '尚無紀錄';
       }
       case 'mole': {
         var tm = (G.mole && G.mole[0]) || null;
-        return tm ? '🏆 ' + formatValue('mole', tm) : '阿嬤等你來挑戰';
+        return tm ? '🏆 ' + formatValue('mole', tm) : '尚無紀錄';
       }
       default:
         return '—';
@@ -350,7 +350,7 @@
     }
     var G = window.__teamLeaderboard;
     if (!G) {
-      return '<p class="ls-empty charm-empty">阿嬤等你／妳來挑戰</p>';
+      return '<p class="ls-empty ls-empty-muted">尚無榜單資料（通關並上傳成績後會更新）</p>';
     }
 
     var blocks = [];
@@ -438,7 +438,7 @@
 
     var G = window.__teamLeaderboard;
     if (!G) {
-      lines.push('阿嬤等你／妳來挑戰');
+      lines.push('尚無榜單資料（通關並上傳成績後會更新）');
       return lines.join('\n');
     }
 
@@ -446,7 +446,7 @@
       lines.push(title);
       var rows = G[gameKey] || [];
       if (!rows.length) {
-        lines.push('  阿嬤等你來挑戰');
+        lines.push('  尚無上榜紀錄');
         lines.push('');
         return;
       }

@@ -134,9 +134,32 @@
     .game-name { font-size:1.15rem; font-weight:800; color:var(--text); margin-bottom:4px; }
     .game-desc { font-size:.85rem; color:var(--muted); line-height:1.4; }
     .game-high {
-      font-size: 0.78rem; color: #5B6EE8; font-weight: 700; margin-top: 6px;
-      line-height: 1.35; word-break: break-word;
-      white-space: pre-line;
+      margin-top: 8px;
+      min-height: 2.4em;
+      line-height: 1.35;
+    }
+    .game-high-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 3px;
+    }
+    .game-high-kicker {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+    .game-high-main {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--primary);
+      word-break: break-word;
+      line-height: 1.4;
+    }
+    .game-high-main--empty {
+      color: var(--muted);
+      font-weight: 600;
     }
     .game-badge {
       background:var(--primary); color:#fff;
@@ -148,7 +171,7 @@
 
     .footer { text-align:center; color:#aaa; font-size:.8rem; padding:8px 8px max(8px, env(safe-area-inset-bottom)); }
 
-    /* 本機最高分總表 */
+    /* 團體榜面板 */
     .scores-panel {
       background: var(--card);
       border-radius: 16px;
@@ -223,6 +246,11 @@
       line-height: 1.45;
       color: var(--muted);
     }
+    .ls-empty-muted {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
     .ls-one .ls-val { font-size: 1.05rem; }
     .btn-share-line {
       display: block; width: 100%;
@@ -265,7 +293,9 @@
       .icon-teal   { background:#1E3D45; }
       .footer { color:#666; }
       .quick-link { background:#1E1E3A; color:#C8D4FF; border-color:#6B7AF0; }
-      .game-high { color: #8FA0FF; }
+      .game-high-kicker { color: #8888aa; }
+      .game-high-main { color: #8FA0FF; }
+      .game-high-main--empty { color: #8888aa; }
       .scores-panel { border-color: rgba(107,122,240,.2); box-shadow: 0 3px 14px rgba(0,0,0,.35); }
       .ls-game { border-color: #2a2a48; }
       .lobby-tabs {
