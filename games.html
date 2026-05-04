@@ -135,8 +135,16 @@
     .game-desc { font-size:.85rem; color:var(--muted); line-height:1.4; }
     .game-high {
       margin-top: 8px;
-      min-height: 2.4em;
       line-height: 1.35;
+    }
+    .game-high-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .game-high-stack > .game-high-inner + .game-high-inner {
+      padding-top: 10px;
+      border-top: 1px solid rgba(91, 110, 232, 0.14);
     }
     .game-high-inner {
       display: flex;
@@ -298,6 +306,9 @@
       .game-high-main--empty { color: #8888aa; }
       .scores-panel { border-color: rgba(107,122,240,.2); box-shadow: 0 3px 14px rgba(0,0,0,.35); }
       .ls-game { border-color: #2a2a48; }
+      .game-high-stack > .game-high-inner + .game-high-inner {
+        border-top-color: rgba(107, 122, 240, 0.22);
+      }
       .lobby-tabs {
         background: rgba(107, 122, 240, 0.15);
         border-color: rgba(107, 122, 240, 0.28);

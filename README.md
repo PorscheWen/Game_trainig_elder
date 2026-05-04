@@ -36,7 +36,7 @@ LIFF 須建立在 **LINE Login** channel（與 [Messaging API 分離政策](http
 
 - 由 **GitHub Actions**（`repository_dispatch` → `scripts/merge-leaderboard-submit.cjs`）寫回倉庫後隨 Pages 部署。
 - **v2 格式**：`scopes._global` 為全體榜；若在 LINE **群組**或多人**聊天室**內開 LIFF 並上傳，會多一個以 `C…`／`R…` 為鍵的 scope，與全體榜分開。
-- 大廳「團體最高分」分頁會依 LIFF context 顯示對應 scope；遊戲卡下方僅顯示該遊戲的團體榜摘要。
+- 大廳「團體最高分」分頁會依 LIFF context 顯示對應 scope；遊戲卡下方顯示 **本機最佳**（`localStorage`）與 **團體榜** 兩段摘要。
 
 ---
 
