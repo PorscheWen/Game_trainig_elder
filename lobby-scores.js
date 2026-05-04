@@ -58,8 +58,4 @@
       heading.textContent = window.__teamLeaderboardScopeLabel;
     }
   };
-
-  window.getLobbyScoreLine = function getLobbyScoreLine(id) {
-    return typeof window.getTeamCardSummary === 'function' ? window.getTeamCardSummary(id) : '—';
-  };
 })();

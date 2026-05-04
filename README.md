@@ -1,8 +1,8 @@
 # 連阿嬤都贏你 · Granny's Got Game
 
-三代同堂都能玩的多合一小遊戲 PWA；全靜態頁面，可安裝到手機桌面。
+三代同堂都能玩的多合一小遊戲 PWA；前端為全靜態頁面，可安裝到手機桌面。
 
-**線上遊玩：** [https://porschewen.github.io/GrannysGotGame/](https://porschewen.github.io/GrannysGotGame/)（大廳：[games.html](https://porschewen.github.io/GrannysGotGame/games.html)）
+**線上遊玩：** [https://porschewen.github.io/GrannysGotGame/](https://porschewen.github.io/GrannysGotGame/) · 大廳：[games.html](https://porschewen.github.io/GrannysGotGame/games.html)
 
 ---
 
@@ -10,50 +10,73 @@
 
 | 遊戲 | 說明 |
 |------|------|
-| **翻牌記憶** | 翻開卡片，找出相同圖案；訓練短期記憶 |
-| **水果消消樂** | 點選相鄰水果交換，橫或直湊滿 3 顆同色即消除；六種顏色水果 + 連鎖加分 |
-| **數字拼圖 2048** | 滑動合併相同數字，挑戰 2048 |
-| **簡易數獨** | 6×6 格，填入 1–6，行列不重複 |
-| **打地鼠** | 目標出現就快點擊，多關卡挑戰 |
-| **文字接龍** | 前一詞最後一字接下一詞開頭 |
+| **翻牌記憶** | 翻開卡片配對相同圖案；本機最佳時間／翻牌次數 |
+| **水果消消樂** | 相鄰交換，橫或直湊滿 3 顆同色消除 |
+| **數字拼圖 2048** | 滑動合併相同數字 |
+| **簡易數獨** | 6×6，填入 1–6 |
+| **打地鼠** | 多關卡點擊目標 |
+| **文字接龍** | 詞語末字接下一詞開頭 |
+
+---
+
+## 設定（`config.js`）
+
+| 欄位 | 說明 |
+|------|------|
+| `gameUrl` | GitHub Pages 基底網址（結尾 `/`）；榜單與分享連結用 |
+| `leaderboardDataPath` | 團體榜 JSON 路徑，預設 `leaderboard.json` |
+| `scoreApiUrl` | 成績上傳 API 根網址（**勿**結尾斜線）。空白則只讀榜、不上傳。應指向跑著 `server.js` 的網址 |
+| `liffId` | LINE Developers → **LINE Login** channel → LIFF 的 App ID（LINE 內開啟時取得使用者與群組／聊天室 context） |
+
+LIFF 須建立在 **LINE Login** channel（與 [Messaging API 分離政策](https://developers.line.biz/en/news/2019/11/11/liff-cannot-be-used-with-messaging-api-channels/) 一致），並與官方帳號同一 Provider 綁定。
+
+---
+
+## 團體榜（`leaderboard.json`）
+
+- 由 **GitHub Actions**（`repository_dispatch` → `scripts/merge-leaderboard-submit.cjs`）寫回倉庫後隨 Pages 部署。
+- **v2 格式**：`scopes._global` 為全體榜；若在 LINE **群組**或多人**聊天室**內開 LIFF 並上傳，會多一個以 `C…`／`R…` 為鍵的 scope，與全體榜分開。
+- 大廳「團體最高分」分頁會依 LIFF context 顯示對應 scope；遊戲卡下方僅顯示該遊戲的團體榜摘要。
 
 ---
 
 ## 技術概要
 
-- **前端：** HTML5、CSS3、原生 JavaScript（無框架）
-- **PWA：** `manifest.json`、`sw.js`（快取、可安裝）
-- **選用後端：** Node.js + Express（`server.js`，LINE Webhook／團體榜轉發等；可本機執行或自架）
-- **部署：** GitHub Pages（靜態站）
+- **前端：** HTML、CSS、原生 JavaScript（無框架）
+- **PWA：** `manifest.json`、`sw.js`
+- **選用後端：** Node.js 18+、`express`（`server.js`：CORS、`POST /api/leaderboard/submit` 轉發 GitHub、`POST /api/score` 記憶體成績、`POST /webhook` LINE 回覆文字成績摘要）
+- **部署：** GitHub Pages（靜態）；榜單與 Actions 見 `.github/workflows/`
 
 ---
 
-## 本機預覽（建議）
+## 本機預覽
 
-請勿用 `file://` 開啟，否則 Service Worker 與部分功能異常。在專案根目錄啟動任一靜態伺服器即可：
+勿用 `file://`（Service Worker 與部分行為會異常）。
 
 ```bash
 cd GrannysGotGame
+npm install
 python -m http.server 8765
 ```
 
-瀏覽器開啟 [http://localhost:8765/games.html](http://localhost:8765/games.html) 進入遊戲大廳。
+瀏覽器開 [http://localhost:8765/games.html](http://localhost:8765/games.html)。
 
----
-
-## 選用：LINE 後端與推播
-
-若需本機或正式環境跑 Webhook／推播腳本：
+若要測**成績上傳**，另開終端機：
 
 ```bash
-npm install
-npm install express
 cp .env.example .env
-# 編輯 .env 填入 LINE 等設定後：
+# 編輯 .env：GITHUB_*、LINE_CHANNEL_ACCESS_TOKEN 等
 node server.js
 ```
 
-預設埠為 `PORT` 環境變數或 **3000**。`package.json` 內另有 `push` 相關 script，詳見倉庫內 `push/` 與既有設定。
+將 `config.js` 的 `scoreApiUrl` 設為 `http://127.0.0.1:3000`（或你的伺服器網址）。
+
+---
+
+## LINE 與推播
+
+- **Rich Menu／推播腳本：** `npm run generate-richmenu`、`npm run setup-richmenu`、`npm run push` 等，見 `push/` 與 `.env.example`。
+- **Webhook：** `server.js` 需設定 `LINE_CHANNEL_SECRET` 才會驗證簽章；未設定時仍回 200（僅建議開發環境）。
 
 ---
 

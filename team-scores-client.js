@@ -8,8 +8,6 @@
     return String(u).replace(/\/?$/, '');
   }
 
-  window.getScoreApiBase = getScoreApiBase;
-
   /** 團體榜 JSON：與 gameUrl 同站的 leaderboard.json（由 GitHub Actions 提交） */
   function getLeaderboardJsonUrl() {
     var base = typeof window.getGameBaseUrl === 'function' ? window.getGameBaseUrl() : '';
@@ -18,8 +16,6 @@
     p = String(p).replace(/^\//, '');
     return base.replace(/\/?$/, '/') + p;
   }
-  window.getLeaderboardJsonUrl = getLeaderboardJsonUrl;
-
   function fmtTime(sec) {
     sec = Number(sec) || 0;
     var m = Math.floor(sec / 60);
@@ -230,7 +226,6 @@
         game: opts.game,
         value: Number(opts.value),
         extra: opts.extra || {},
-        lowerIsBetter: !!opts.lowerIsBetter,
       };
       if (gid) body.groupId = gid;
       return fetch(base + '/api/leaderboard/submit', {

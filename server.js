@@ -42,10 +42,9 @@ app.post('/api/score', (req, res) => {
 });
 
 /**
- * 團體榜提交：轉發至 GitHub repository_dispatch → Actions 合併 leaderboard.json
- * 榜單資料存於 repo，非此伺服器檔案。
+ * 團體榜提交：轉發 GitHub repository_dispatch → Actions 合併 leaderboard.json（資料在 repo）。
+ * 可選 body.groupId：LINE 群組 C… 或聊天室 R…；缺省或無效則合併至全體 _global。
  */
-/** LINE 群組（C…）或多人聊天室（R…）作為團體榜分區；無效則寫入全體 _global */
 function sanitizeLeaderboardScopeId(raw) {
   if (!raw || typeof raw !== 'string') return '';
   const s = raw.trim();
